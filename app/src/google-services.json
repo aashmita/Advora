@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "303837123289",
+    "project_id": "advora-32b74",
+    "storage_bucket": "advora-32b74.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303837123289:android:4352a0a88752dff83864c8",
+        "android_client_info": {
+          "package_name": "com.example.advora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWgWc9xqZdkP5k4CtdbzKjX-VW3OxtTzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

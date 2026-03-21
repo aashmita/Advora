@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Advora</string>
+    <string name="welcome">Welcome to Advora</string>
+    <string name="subtitle">Your trusted classified marketplace</string>
+    <string name="enter_phone">Enter phone number</string>
+    <string name="get_otp">Get OTP</string>
+    <string name="enter_otp">Enter OTP</string>
+    <string name="verify">Verify OTP</string>
+</resources>
