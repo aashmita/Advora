@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun OtpScreen(onBack: () -> Unit, onVerify: () -> Unit) {
+fun OtpScreen(mobileNumber: String, onBack: () -> Unit, onVerify: () -> Unit) {
 
     val context = LocalContext.current
 
@@ -78,8 +78,8 @@ fun OtpScreen(onBack: () -> Unit, onVerify: () -> Unit) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                "Enter the 6-digit code sent to your email",
-                color = Color.Gray,
+                "Enter the 6-digit code sent to $mobileNumber",
+                color = Color.Black,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
@@ -187,6 +187,7 @@ fun OtpScreen(onBack: () -> Unit, onVerify: () -> Unit) {
 @Composable
 fun OtpPreview() {
     OtpScreen(
+        mobileNumber = "1234567890",
         onBack = {},
         onVerify = {}
     )

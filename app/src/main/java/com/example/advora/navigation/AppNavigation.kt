@@ -1,37 +1,94 @@
 package com.example.advora.navigation
 
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.advora.screens.*
+import com.example.advora.model.Ad
+import com.example.advora.viewmodel.DashboardViewModel
 
 @Composable
 fun AppNavigation() {
 
+    // 🔁 CURRENT SCREEN
     var screen by remember { mutableStateOf("login") }
-    var phone by remember { mutableStateOf("") }
+
+    // 📦 SELECTED AD
+    var selectedItem by remember { mutableStateOf<Ad?>(null) }
+
+    // ✅ SINGLE SHARED VIEWMODEL
+    val viewModel: DashboardViewModel = viewModel()
 
     when (screen) {
 
+        // 🔐 LOGIN
         "login" -> LoginScreen(
-            onLogin = { screen = "dashboard" },
+            onLogin = { screen = "home" },
             onRegister = { screen = "register" }
         )
 
+        // 📝 REGISTER
         "register" -> RegisterScreen(
             onBack = { screen = "login" },
-            onOtp = {
-                phone = it
-                screen = "otp"
+            onOtp = { screen = "otp" }
+        )
+
+        // 🔢 OTP
+        "otp" -> OtpScreen(
+            mobileNumber = "",
+            onBack = { screen = "register" },
+            onVerify = { screen = "home" }
+        )
+
+        // 🏠 HOME
+        "home" -> DashboardScreen(
+            viewModel = viewModel,
+            current = "home",
+            onNavigate = { route -> screen = route },
+            onItemClick = { ad ->
+                selectedItem = ad
+                screen = "detail"
             }
         )
 
-        "otp" -> OtpScreen(
-            phone = phone,
-            onBack = { screen = "register" },
-            onSuccess = { screen = "dashboard" }
+        // ➕ POST
+        "post" -> PostAdScreen(
+            viewModel = viewModel,
+            onBack = { screen = "home" }
         )
 
-        "dashboard" -> DashboardScreen(
-            onLogout = { screen = "login" }
+        // ❤️ SAVED
+        "saved" -> SavedScreen(
+            viewModel = viewModel,
+            onBack = { screen = "home" }
         )
+
+        // 📦 MY ADS (✅ FIXED)
+        "ads" -> MyAdsScreen(
+            viewModel = viewModel,
+            onBack = { screen = "home" }
+        )
+
+        // 📄 DETAIL
+        "detail" -> {
+            selectedItem?.let { ad ->
+                DetailScreen(
+                    title = ad.title,
+                    description = ad.description,
+                    price = ad.price,
+                    location = ad.location,
+                    imageUrl = ad.imageUrl,
+                    onBack = { screen = "home" }
+                )
+            } ?: run {
+                screen = "home"
+            }
+        }
+
+        // 📍 OTHER
+        "map" -> PlaceholderScreen("Map") { screen = "home" }
+        "profile" -> PlaceholderScreen("Profile") { screen = "home" }
+
+        // 🔁 DEFAULT
+        else -> screen = "login"
     }
 }
