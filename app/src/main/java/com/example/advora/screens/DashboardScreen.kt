@@ -38,6 +38,8 @@ fun DashboardScreen(
     onItemClick: (Ad) -> Unit
 ) {
 
+
+
     val ads = viewModel.filteredAds
 
     Scaffold(
