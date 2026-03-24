@@ -131,7 +131,12 @@ fun DashboardScreen(
                     Row {
                         Icon(Icons.Default.Language, "", tint = Color.White)
                         Spacer(Modifier.width(12.dp))
-                        Icon(Icons.Default.Notifications, "", tint = Color.White)
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notifications",
+                            tint = Color.White,
+                            modifier = Modifier.clickable { onNavigate("notification") }
+                        )
                         Spacer(Modifier.width(12.dp))
                         Icon(Icons.Default.Person, "", tint = Color.White)
                     }

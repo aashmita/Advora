@@ -5,9 +5,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.advora.screens.*
 import com.example.advora.model.Ad
 import com.example.advora.viewmodel.DashboardViewModel
+import com.example.advora.viewmodel.LanguageViewModel
 
 @Composable
 fun AppNavigation() {
+    val languageViewModel: LanguageViewModel = viewModel()
 
     // 🔁 CURRENT SCREEN
     var screen by remember { mutableStateOf("login") }
@@ -19,7 +21,7 @@ fun AppNavigation() {
     val viewModel: DashboardViewModel = viewModel()
 
     when (screen) {
-
+        "notification" -> NotificationScreen(languageViewModel)
         // 🔐 LOGIN
         "login" -> LoginScreen(
             onLogin = { screen = "home" },
@@ -83,7 +85,7 @@ fun AppNavigation() {
                 screen = "home"
             }
         }
-
+        C:\Users\mahek\AndroidStudioProjects\Advora\app\src\main\java
         // 📍 OTHER
         "map" -> PlaceholderScreen("Map") { screen = "home" }
         "profile" -> PlaceholderScreen("Profile") { screen = "home" }
