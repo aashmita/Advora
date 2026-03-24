@@ -85,7 +85,6 @@ fun AppNavigation() {
                 screen = "home"
             }
         }
-        C:\Users\mahek\AndroidStudioProjects\Advora\app\src\main\java
         // 📍 OTHER
         "map" -> PlaceholderScreen("Map") { screen = "home" }
         "profile" -> PlaceholderScreen("Profile") { screen = "home" }
