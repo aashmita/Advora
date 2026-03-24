@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.advora.screens.*
 import com.example.advora.model.Ad
 import com.example.advora.viewmodel.DashboardViewModel
+import com.example.advora.screens.MapScreen
 
 @Composable
 fun AppNavigation() {
@@ -85,7 +86,7 @@ fun AppNavigation() {
         }
 
         // 📍 OTHER
-        "map" -> PlaceholderScreen("Map") { screen = "home" }
+        "map" -> MapScreen()
         "profile" -> PlaceholderScreen("Profile") { screen = "home" }
 
         // 🔁 DEFAULT
