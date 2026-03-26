@@ -1,143 +1,120 @@
 package com.example.advora.screens
 
-// ✅ REQUIRED IMPORTS (MOST IMPORTANT)
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
 import coil.compose.AsyncImage
 
-// ✅ IMPORT YOUR VIEWMODEL + MODEL (VERY IMPORTANT)
-import com.example.advora.viewmodel.DashboardViewModel
 import com.example.advora.model.Ad
 
 @Composable
 fun SavedScreen(
-    viewModel: DashboardViewModel,
     onBack: () -> Unit
 ) {
 
-    val ads: List<Ad> = viewModel.savedAds
+    // 🔥 STATIC SAVED ADS (NO VIEWMODEL)
+    val savedAds = listOf(
 
-    Column {
+        Ad(
+            title = "Laptop for Sale",
+            price = "₹30,000",
+            location = "Ujjain",
+            imageUrl = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
+            category = "Buy/Sell"
+        ),
 
-        // 🔷 HEADER
+        Ad(
+            title = "1BHK Flat",
+            price = "₹8,000/month",
+            location = "Indore",
+            imageUrl = "https://images.unsplash.com/photo-1507089947368-19c1da9775ae",
+            category = "Rentals"
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF3F3F3))
+    ) {
+
+        // 🔹 HEADER
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color.Black)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "",
+                tint = Color(0xFFB86B4B),
                 modifier = Modifier.clickable { onBack() }
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
 
-            Column {
-                Text("Saved Ads / सहेजे गए विज्ञापन")
-                Text("${ads.size} saved items", fontSize = 12.sp)
-            }
+            Text(
+                "Saved Ads",
+                color = Color(0xFFB86B4B),
+                fontSize = 18.sp
+            )
         }
 
-        // 🔴 EMPTY STATE
-        if (ads.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No saved ads 😢")
-            }
-        }
+        // 🔹 LIST
+        LazyColumn {
 
-        // 🟢 LIST
-        else {
-            LazyColumn {
+            items(savedAds) { ad ->
 
-                items(ads) { ad ->
+                Card(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
 
-                    Card(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
+                    Row {
 
-                        Column {
+                        AsyncImage(
+                            model = ad.imageUrl,
+                            contentDescription = "",
+                            modifier = Modifier.size(100.dp),
+                            contentScale = ContentScale.Crop
+                        )
 
-                            Box {
+                        Column(
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .weight(1f)
+                        ) {
 
-                                AsyncImage(
-                                    model = ad.imageUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                )
+                            Text(ad.title, fontSize = 14.sp)
 
-                                // 🟢 ACTIVE BADGE
-                                Box(
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .background(
-                                            Color(0xFF16A34A),
-                                            RoundedCornerShape(12.dp)
-                                        )
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text("Active", color = Color.White)
-                                }
+                            Spacer(Modifier.height(4.dp))
 
-                                // ❌ DELETE BUTTON
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = Color.Red,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(8.dp)
-                                        .clickable {
-                                            viewModel.toggleSave(ad)
-                                        }
-                                )
-                            }
+                            Text(ad.location, color = Color.Gray, fontSize = 12.sp)
 
-                            Column(
-                                modifier = Modifier.padding(12.dp)
-                            ) {
+                            Spacer(Modifier.height(6.dp))
 
-                                Text(ad.title)
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint = Color.Gray
-                                    )
-                                    Text(ad.location, color = Color.Gray)
-                                }
-
-                                Text(
-                                    ad.price,
-                                    color = Color(0xFF1F3C88)
-                                )
-                            }
+                            Text(
+                                ad.price,
+                                color = Color(0xFFB86B4B),
+                                fontSize = 14.sp
+                            )
                         }
                     }
                 }

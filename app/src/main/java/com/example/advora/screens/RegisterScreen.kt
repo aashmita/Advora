@@ -1,177 +1,270 @@
+
 package com.example.advora.screens
 
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.advora.R
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.advora.viewmodel.LanguageViewModel
 
 @Composable
-fun RegisterScreen(onBack: () -> Unit, onOtp: (String) -> Unit) {
+fun RegisterScreen(
+    onSuccess: () -> Unit,
+    onBack: () -> Unit,
+    languageViewModel: LanguageViewModel
+) {
 
-    val context = LocalContext.current
+    val isHindi = languageViewModel.isHindi
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPassword by remember { mutableStateOf("") }
 
-    val gradient = Brush.horizontalGradient(
-        listOf(Color(0xFFFF7A18), Color(0xFF9333EA))
-    )
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmVisible by remember { mutableStateOf(false) }
+
+    var error by remember { mutableStateOf("") }
+
+    val primaryColor = Color(0xFFB86B4B)
+    val cardColor = Color(0xFF2C2C2C)
+    val fieldColor = Color(0xFF4A4A4A)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(Color(0xFFEDEDED))
     ) {
 
-        // 🔙 Back Button
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier.padding(12.dp)
+        // 🌐 LANGUAGE TOGGLE
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            Box(
+                modifier = Modifier
+                    .shadow(8.dp, RoundedCornerShape(50))
+                    .background(cardColor, RoundedCornerShape(50))
+                    .clickable { languageViewModel.toggleLanguage() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Translate, null, tint = primaryColor)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = if (isHindi) "EN" else "हिं",
+                        color = primaryColor
+                    )
+                }
+            }
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth(0.88f)
-                .align(Alignment.Center),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // 🔥 Logo
-            Image(
-                painter = painterResource(id = R.drawable.advora_logo),
-                contentDescription = null,
-                modifier = Modifier.size(120.dp)
-            )
+            Spacer(modifier = Modifier.height(75.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Row {
+                Text("Ad", color = primaryColor, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                Text("vora", color = Color.Black, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            }
 
-            Text("Create Account", fontSize = 22.sp)
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // 👤 Name
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                placeholder = { Text("Full Name") },
-                leadingIcon = { Icon(Icons.Default.Person, null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 📧 Email
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text("Email Address") },
-                leadingIcon = { Icon(Icons.Default.Email, null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 📱 Phone
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { if (it.length <= 10) phone = it },
-                placeholder = { Text("Mobile Number") },
-                leadingIcon = { Icon(Icons.Default.Phone, null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 🔒 Password
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text("Password") },
-                leadingIcon = { Icon(Icons.Default.Lock, null) },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            if (passwordVisible) Icons.Default.Visibility
-                            else Icons.Default.VisibilityOff,
-                            contentDescription = null
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
+            Text(
+                text = if (isHindi) "अपना खाता बनाएं" else "Create your account",
+                color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🎯 Gradient Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(gradient, RoundedCornerShape(12.dp))
-                    .clickable {
-                        when {
-                            name.isEmpty() -> Toast.makeText(context, "Enter name", Toast.LENGTH_SHORT).show()
-                            email.isEmpty() -> Toast.makeText(context, "Enter email", Toast.LENGTH_SHORT).show()
-                            phone.length != 10 -> Toast.makeText(context, "Enter valid phone", Toast.LENGTH_SHORT).show()
-                            password.length < 6 -> Toast.makeText(context, "Password too short", Toast.LENGTH_SHORT).show()
-                            else -> onOtp(phone)
-                        }
-                    },
-                contentAlignment = Alignment.Center
+            // 🔥 IMPROVED CARD SIZE
+            Card(
+                modifier = Modifier.fillMaxWidth(0.88f), // 👈 slightly bigger
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardColor),
+                elevation = CardDefaults.cardElevation(10.dp)
             ) {
-                Text("Continue Registration", color = Color.White, fontSize = 16.sp)
+
+                Column(
+                    modifier = Modifier.padding(20.dp), // 👈 more spacing
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = if (isHindi) "रजिस्टर करें" else "Register",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    InputField(
+                        placeholder = if (isHindi) "पूरा नाम" else "Full Name",
+                        icon = Icons.Default.Person,
+                        value = name,
+                        fieldColor = fieldColor,
+                        onChange = { name = it }
+                    )
+
+                    InputField(
+                        placeholder = if (isHindi) "ईमेल" else "Email",
+                        icon = Icons.Default.Email,
+                        value = email,
+                        fieldColor = fieldColor,
+                        onChange = { email = it }
+                    )
+
+                    PasswordField(
+                        placeholder = if (isHindi) "पासवर्ड" else "Password",
+                        value = password,
+                        visible = passwordVisible,
+                        icon = Icons.Default.Lock,
+                        fieldColor = fieldColor,
+                        onChange = { password = it },
+                        toggle = { passwordVisible = !passwordVisible }
+                    )
+
+                    PasswordField(
+                        placeholder = if (isHindi) "पासवर्ड पुष्टि करें" else "Confirm Password",
+                        value = confirmPassword,
+                        visible = confirmVisible,
+                        icon = Icons.Default.Lock,
+                        fieldColor = fieldColor,
+                        onChange = { confirmPassword = it },
+                        toggle = { confirmVisible = !confirmVisible }
+                    )
+
+                    if (error.isNotEmpty()) {
+                        Text(error, color = Color.Red, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            when {
+                                name.isBlank() ->
+                                    error = if (isHindi) "नाम दर्ज करें" else "Enter name"
+                                !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
+                                    error = if (isHindi) "गलत ईमेल" else "Invalid email"
+                                password.length < 6 ->
+                                    error = if (isHindi) "पासवर्ड छोटा है" else "Password too short"
+                                password != confirmPassword ->
+                                    error = if (isHindi) "पासवर्ड मेल नहीं खाते" else "Passwords mismatch"
+                                else -> {
+                                    error = ""
+                                    onSuccess()
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text(if (isHindi) "रजिस्टर करें" else "Register")
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row {
+                        Text(
+                            text = if (isHindi) "पहले से खाता है?" else "Already have an account?",
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = if (isHindi) " लॉगिन करें" else " Login",
+                            color = primaryColor,
+                            modifier = Modifier.clickable { onBack() }
+                        )
+                    }
+                }
             }
         }
     }
 }
-
-/////////////////////////////////////////////////////
-// 🔍 PREVIEW
-/////////////////////////////////////////////////////
-
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun RegisterPreview() {
-    RegisterScreen(
-        onBack = {},
-        onOtp = {}
+fun InputField(
+    placeholder: String,
+    icon: ImageVector,
+    value: String,
+    fieldColor: Color, // ✅ ADD THIS
+    onChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        placeholder = { Text(placeholder, color = Color.LightGray) },
+        leadingIcon = { Icon(icon, null, tint = Color.LightGray) },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = fieldColor,
+            unfocusedContainerColor = fieldColor,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+    )
+}
+@Composable
+fun PasswordField(
+    placeholder: String,
+    value: String,
+    visible: Boolean,
+    icon: ImageVector,
+    fieldColor: Color,
+    onChange: (String) -> Unit,
+    toggle: () -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        placeholder = { Text(placeholder, color = Color.LightGray) },
+        leadingIcon = { Icon(icon, null, tint = Color.LightGray) },
+        trailingIcon = {
+            IconButton(onClick = toggle) {
+                Icon(
+                    if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = null,
+                    tint = Color.Gray // 👈 FIXED
+                )
+            }
+        },
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = fieldColor,
+            unfocusedContainerColor = fieldColor,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
     )
 }

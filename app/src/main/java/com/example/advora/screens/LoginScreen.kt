@@ -7,191 +7,297 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.advora.R
+import com.example.advora.viewmodel.LanguageViewModel
 
 @Composable
-fun LoginScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
-
+fun LoginScreen(
+    onLogin: () -> Unit,
+    onRegister: () -> Unit,
+    languageViewModel: LanguageViewModel
+) {
     val context = LocalContext.current
+    val isHindi = languageViewModel.isHindi
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val gradient = Brush.horizontalGradient(
-        colors = listOf(Color(0xFFFF7A18), Color(0xFF9333EA))
-    )
+    val backgroundColor = Color(0xFFEDEDED)
+    val primaryColor = Color(0xFFB86B4B)
+    val cardColor = Color(0xFF2C2C2C)
+    val fieldColor = Color(0xFF3A3A3A)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5)),
-        contentAlignment = Alignment.Center
+            .background(backgroundColor)
     ) {
 
-        Column(
+        /////////////////////////////////////////////////////////////
+        // 🌐 LANGUAGE TOGGLE (FINAL DESIGN)
+        /////////////////////////////////////////////////////////////
+        Row(
             modifier = Modifier
-                .fillMaxWidth(0.88f),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(top = 40.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-
-            // 🔥 Logo
-            Image(
-                painter = painterResource(id = R.drawable.advora_logo),
-                contentDescription = null,
-                modifier = Modifier.size(140.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Welcome Back!",
-                fontSize = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // 📧 Email Label
-            Text(
-                text = "Email Address",
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text("your@email.com") },
-                leadingIcon = { Icon(Icons.Default.Email, null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 🔒 Password Label
-            Text(
-                text = "Password",
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text("Enter your password") },
-                leadingIcon = { Icon(Icons.Default.Lock, null) },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible)
-                                Icons.Filled.Visibility
-                            else
-                                Icons.Filled.VisibilityOff,
-                            contentDescription = null
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
-            )
-
-            Spacer(modifier = Modifier.height(10.dp)) // 👈 space above
-            // 🔗 Forgot Password
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(
-                    "Forgot Password?",
-                    fontSize = 13.sp,
-                    color = Color(0xFF6366F1),
-                    modifier = Modifier.clickable {
-                        Toast.makeText(context, "Forgot Password", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 🎯 Gradient Button
-            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(gradient, RoundedCornerShape(12.dp))
-                    .clickable {
-                        if (email.isNotEmpty() && password.isNotEmpty()) {
-                            onLogin()
-                        } else {
-                            Toast.makeText(context, "Enter details", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                contentAlignment = Alignment.Center
+                    .shadow(6.dp, RoundedCornerShape(50))
+                    .background(
+                        color = Color(0xFF2C2C2C),
+                        shape = RoundedCornerShape(50)
+                    )
+                    .clickable { languageViewModel.toggleLanguage() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Login", color = Color.White, fontSize = 16.sp)
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Icon(
+                    Icons.Default.Translate,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(16.dp)
+                )
 
-            // 🔸 OR Divider (FIXED)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                HorizontalDivider(modifier = Modifier.weight(1f))
-                Text("  OR  ", color = Color.Gray)
-                HorizontalDivider(modifier = Modifier.weight(1f))
-            }
+                Spacer(modifier = Modifier.width(6.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 🆕 Register
-            Row {
-                Text("New user? ")
                 Text(
-                    "Register Now",
-                    color = Color(0xFF6366F1),
-                    modifier = Modifier.clickable { onRegister() }
+                    text = if (isHindi) "EN" else "हिं",
+                    color = primaryColor,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
+
+        /////////////////////////////////////////////////////////////
+        // MAIN CONTENT
+        /////////////////////////////////////////////////////////////
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .align(Alignment.Center)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // 🔥 LOGO
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo",
+                modifier = Modifier.size(100.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Row {
+                    Text(
+                        text = "Ad",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
+                    )
+                    Text(
+                        text = "vora",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = if (isHindi) "Advora में आपका स्वागत है"
+                    else "Welcome back to Advora",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            /////////////////////////////////////////////////////////////
+            // CARD
+            /////////////////////////////////////////////////////////////
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(12.dp, RoundedCornerShape(22.dp)),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = cardColor)
+            ) {
+
+                Column(modifier = Modifier.padding(20.dp)) {
+
+                    Text(
+                        text = if (isHindi) "लॉगिन करें" else "Login",
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Text(
+                        text = if (isHindi) "ईमेल" else "Email",
+                        fontSize = 13.sp,
+                        color = Color.LightGray
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // 🔥 EMAIL FIELD FIXED
+                    TextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        placeholder = {
+                            Text(
+                                if (isHindi) "आपका ईमेल" else "your@email.com",
+                                color = Color.Gray
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Email, null, tint = Color.Gray)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = fieldColor,
+                            unfocusedContainerColor = fieldColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = if (isHindi) "पासवर्ड" else "Password",
+                        fontSize = 13.sp,
+                        color = Color.LightGray
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // 🔥 PASSWORD FIELD FULLY FIXED
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        placeholder = {
+                            Text("••••••••", color = Color.Gray)
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Lock, null, tint = Color.Gray)
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    if (passwordVisible)
+                                        Icons.Default.Visibility
+                                    else
+                                        Icons.Default.VisibilityOff,
+                                    null,
+                                    tint = Color.Gray
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisible)
+                            VisualTransformation.None
+                        else PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = fieldColor,
+                            unfocusedContainerColor = fieldColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = if (isHindi) "पासवर्ड भूल गए?" else "Forgot Password?",
+                        color = primaryColor,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.End)
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Button(
+                        onClick = {
+                            if (email.isNotEmpty() && password.isNotEmpty()) {
+                                onLogin()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    if (isHindi) "डिटेल भरें" else "Enter details",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text(
+                            text = if (isHindi) "लॉगिन" else "Login",
+                            color = Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = if (isHindi) "नया उपयोगकर्ता?" else "New User? ",
+                            color = Color.LightGray
+                        )
+                        Text(
+                            text = if (isHindi) "रजिस्टर करें" else "Register",
+                            color = primaryColor,
+                            modifier = Modifier.clickable { onRegister() }
+                        )
+                    }
+                }
+            }
+        }
     }
-}
-
-/////////////////////////////////////////////////////
-// 🔍 PREVIEW
-/////////////////////////////////////////////////////
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun LoginPreview() {
-    LoginScreen(
-        onLogin = {},
-        onRegister = {}
-    )
 }

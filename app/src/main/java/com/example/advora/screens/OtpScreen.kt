@@ -1,194 +1,218 @@
 package com.example.advora.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import com.example.advora.viewmodel.LanguageViewModel
 
 @Composable
-fun OtpScreen(mobileNumber: String, onBack: () -> Unit, onVerify: () -> Unit) {
+fun OtpScreen(
+    onVerify: () -> Unit,
+    onBack: () -> Unit,
+    languageViewModel: LanguageViewModel
+) {
 
-    val context = LocalContext.current
+    val isHindi = languageViewModel.isHindi
 
-    var otp by remember { mutableStateOf(List(6) { "" }) }
-    val focusRequesters = List(6) { FocusRequester() }
+    val primaryColor = Color(0xFFB86B4B)
+    val cardColor = Color(0xFF2C2C2C)
+    val fieldColor = Color(0xFF4A4A4A)
 
-    var timeLeft by remember { mutableIntStateOf(30) }
+    val otpLength = 6
+    val otpValues = remember { mutableStateListOf("", "", "", "", "", "") }
+    val focusRequesters = List(otpLength) { FocusRequester() }
+
+    var timer by remember { mutableStateOf(30) }
     var isResendEnabled by remember { mutableStateOf(false) }
 
-    // ⏳ Timer
-    LaunchedEffect(isResendEnabled) {
-        if (!isResendEnabled) {
-            while (timeLeft > 0) {
-                delay(1000)
-                timeLeft--
-            }
+    // ⏳ TIMER
+    LaunchedEffect(timer) {
+        if (timer > 0) {
+            delay(1000)
+            timer--
+        } else {
             isResendEnabled = true
         }
     }
 
-    val gradient = Brush.horizontalGradient(
-        listOf(Color(0xFFFF7A18), Color(0xFF9333EA))
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(Color(0xFFEDEDED))
     ) {
 
-        // 🔙 Back Button
+        // 🔙 BACK BUTTON (WORKING)
         IconButton(
-            onClick = { onBack() },
-            modifier = Modifier.padding(12.dp)
+            onClick = onBack,
+            modifier = Modifier.padding(top = 40.dp, start = 12.dp)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            Icon(Icons.Default.ArrowBack, contentDescription = null)
+        }
+
+        // 🌐 LANGUAGE TOGGLE
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(cardColor, RoundedCornerShape(50))
+                    .clickable { languageViewModel.toggleLanguage() }
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Translate, null, tint = primaryColor)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = if (isHindi) "EN" else "हिं",
+                        color = primaryColor
+                    )
+                }
+            }
         }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Text("Verify OTP", fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(80.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
+            // 🔥 SAME LOGO STYLE AS LOGIN
+            Row {
+                Text("Ad", color = primaryColor, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                Text("vora", color = Color.Black, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            }
 
             Text(
-                "Enter the 6-digit code sent to $mobileNumber",
-                color = Color.Black,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center
+                text = if (isHindi) "खाता सत्यापित करें" else "Verify your account",
+                color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // 🔢 OTP INPUT
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-                otp.forEachIndexed { index, value ->
-
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { newValue ->
-                            if (newValue.length <= 1) {
-
-                                otp = otp.toMutableList().also {
-                                    it[index] = newValue
-                                }
-
-                                // 👉 Move forward
-                                if (newValue.isNotEmpty() && index < 5) {
-                                    focusRequesters[index + 1].requestFocus()
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .width(48.dp)
-                            .height(56.dp)
-                            .focusRequester(focusRequesters[index])
-                            .onKeyEvent { event ->
-                                if (event.type == KeyEventType.KeyDown &&
-                                    event.key == Key.Backspace &&
-                                    otp[index].isEmpty() &&
-                                    index > 0
-                                ) {
-                                    focusRequesters[index - 1].requestFocus()
-                                }
-                                false
-                            },
-                        textStyle = LocalTextStyle.current.copy(
-                            textAlign = TextAlign.Center,
-                            fontSize = 18.sp
-                        ),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        ),
-                        visualTransformation = VisualTransformation.None,
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // ✅ Verify Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(gradient, RoundedCornerShape(12.dp))
-                    .clickable {
-                        if (otp.all { it.isNotEmpty() }) {
-                            onVerify()
-                        } else {
-                            Toast.makeText(context, "Enter OTP", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                contentAlignment = Alignment.Center
+            // 🔥 SAME CARD STYLE AS LOGIN
+            Card(
+                modifier = Modifier.fillMaxWidth(0.88f),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardColor),
+                elevation = CardDefaults.cardElevation(12.dp)
             ) {
-                Text("Verify", color = Color.White, fontSize = 16.sp)
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-            // ⏳ Resend
-            if (isResendEnabled) {
-                Text(
-                    "Resend OTP",
-                    color = Color(0xFF6366F1),
-                    modifier = Modifier.clickable {
-                        timeLeft = 30
-                        isResendEnabled = false
-                        Toast.makeText(context, "OTP Resent", Toast.LENGTH_SHORT).show()
+                    Text(
+                        text = if (isHindi) "OTP दर्ज करें" else "Enter OTP",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = if (isHindi) "6 अंकों का कोड दर्ज करें" else "Enter 6-digit code",
+                        color = Color.LightGray,
+                        fontSize = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 🔢 OTP INPUT BOXES
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                        for (i in 0 until otpLength) {
+
+                            OutlinedTextField(
+                                value = otpValues[i],
+                                onValueChange = { value ->
+                                    if (value.length <= 1) {
+                                        otpValues[i] = value
+
+                                        if (value.isNotEmpty() && i < otpLength - 1) {
+                                            focusRequesters[i + 1].requestFocus()
+                                        }
+                                        if (value.isEmpty() && i > 0) {
+                                            focusRequesters[i - 1].requestFocus()
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(45.dp)
+                                    .height(55.dp)
+                                    .focusRequester(focusRequesters[i]),
+                                textStyle = LocalTextStyle.current.copy(
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 18.sp,
+                                    color = Color.White
+                                ),
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = fieldColor,
+                                    unfocusedContainerColor = fieldColor,
+                                    focusedBorderColor = primaryColor,
+                                    unfocusedBorderColor = Color.Transparent
+                                )
+                            )
+                        }
                     }
-                )
-            } else {
-                Text("Resend in $timeLeft s", color = Color.Gray)
+
+                    Spacer(modifier = Modifier.height(25.dp))
+
+                    Button(
+                        onClick = onVerify,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text(if (isHindi) "सत्यापित करें" else "Verify")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (isResendEnabled) {
+                        Text(
+                            text = if (isHindi) "OTP पुनः भेजें" else "Resend OTP",
+                            color = primaryColor,
+                            modifier = Modifier.clickable {
+                                timer = 30
+                                isResendEnabled = false
+                            }
+                        )
+                    } else {
+                        Text(
+                            text = if (isHindi) "फिर से भेजें: $timer सेकंड" else "Resend in $timer s",
+                            color = Color.Gray
+                        )
+                    }
+                }
             }
         }
     }
-
-    // 👉 Focus first box
-    LaunchedEffect(Unit) {
-        focusRequesters[0].requestFocus()
-    }
-}
-
-/////////////////////////////////////////////////////
-// 🔍 PREVIEW
-/////////////////////////////////////////////////////
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun OtpPreview() {
-    OtpScreen(
-        mobileNumber = "1234567890",
-        onBack = {},
-        onVerify = {}
-    )
 }

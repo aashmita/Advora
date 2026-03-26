@@ -3,174 +3,116 @@ package com.example.advora.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
+import androidx.compose.ui.Alignment
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.foundation.Image
+import androidx.activity.result.PickVisualMediaRequest
 
-import com.example.advora.viewmodel.DashboardViewModel
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostAdScreen(
-    viewModel: DashboardViewModel,
     onBack: () -> Unit
 ) {
 
     var title by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var area by remember { mutableStateOf("") }
+    var contact by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Jobs") }
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // 📸 Image picker
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
         imageUri = uri
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(Color(0xFFF5F1EC))
     ) {
 
-        // 🔙 HEADER (TOP)
         Row(
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.ArrowBack,
-                contentDescription = null,
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "",
                 modifier = Modifier.clickable { onBack() }
             )
             Spacer(Modifier.width(8.dp))
-            Text("Post Ad / विज्ञापन पोस्ट करें")
+            Text("विज्ञापन डालें", fontSize = 20.sp)
         }
 
-        // 🔽 FORM CARD
-        Card(
-            shape = RoundedCornerShape(20.dp),
+        Column(
             modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F0F5))
+                .padding(16.dp)
+                .fillMaxSize()
         ) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            OutlinedTextField(title, { title = it }, label = { Text("शीर्षक *") })
+            Spacer(Modifier.height(10.dp))
 
-                // 📸 IMAGE UPLOAD (TOP INSIDE CARD)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .background(Color(0xFFEDEDED), RoundedCornerShape(12.dp))
-                        .clickable { launcher.launch("image/*") },
-                    contentAlignment = Alignment.Center
-                ) {
+            OutlinedTextField(description, { description = it }, label = { Text("विवरण *") })
+            Spacer(Modifier.height(10.dp))
 
-                    if (imageUri == null) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Upload, contentDescription = null)
-                            Text("Upload Image")
-                        }
-                    } else {
-                        AsyncImage(
-                            model = imageUri,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+            OutlinedTextField(city, { city = it }, label = { Text("शहर *") })
+            Spacer(Modifier.height(10.dp))
+
+            OutlinedTextField(price, { price = it }, label = { Text("मूल्य *") })
+            Spacer(Modifier.height(10.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .background(Color(0xFFEDE3D7), RoundedCornerShape(10.dp))
+                    .clickable {
+                        launcher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // 🧾 INPUT FIELDS
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    placeholder = { Text("Ad Title") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    placeholder = { Text("Category") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    placeholder = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    placeholder = { Text("Location") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it },
-                    placeholder = { Text("Price") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // 🚀 POST BUTTON
-                Button(
-                    onClick = {
-                        viewModel.addAd(
-                            title,
-                            description,
-                            price,
-                            location,
-                            category,
-                            imageUri?.toString() ?: ""
-                        )
-                        onBack()
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(30.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6B4CAF)
+                contentAlignment = Alignment.Center
+            ) {
+
+                if (imageUri == null) {
+                    Text("तस्वीर जोड़ें")
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUri),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                ) {
-                    Text("Post Ad", color = Color.White)
                 }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("पोस्ट करें")
             }
         }
     }
