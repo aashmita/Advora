@@ -30,7 +30,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 fun NotificationScreen(viewModel: LanguageViewModel) {
     val lang by viewModel.language.collectAsState(initial = "en")
 
-      ApplyLanguage(lang)
+    ApplyLanguage(lang)
     val notifications = listOf(
         NotificationModel(
             title = stringResource(R.string.ad_still_active),
