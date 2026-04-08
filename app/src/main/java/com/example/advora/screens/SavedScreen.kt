@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -13,108 +14,143 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
-
-import com.example.advora.model.Ad
+import com.example.advora.viewmodel.AdViewModel
+import com.example.advora.viewmodel.AdItem
 
 @Composable
 fun SavedScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    adViewModel: AdViewModel,
+    onNavigate: (String) -> Unit,
+    isHindi: Boolean,
+    onAdClick: (AdItem) -> Unit
 ) {
 
-    // 🔥 STATIC SAVED ADS (NO VIEWMODEL)
-    val savedAds = listOf(
+    val savedAds = adViewModel.savedAds
 
-        Ad(
-            title = "Laptop for Sale",
-            price = "₹30,000",
-            location = "Ujjain",
-            imageUrl = "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-            category = "Buy/Sell"
-        ),
+    Scaffold(
+        bottomBar = {
+            BottomNavBar(onNavigate, isHindi)
+        }
+    ) { paddingValues ->   // ✅ FIXED HERE
 
-        Ad(
-            title = "1BHK Flat",
-            price = "₹8,000/month",
-            location = "Indore",
-            imageUrl = "https://images.unsplash.com/photo-1507089947368-19c1da9775ae",
-            category = "Rentals"
-        )
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF3F3F3))
-    ) {
-
-        // 🔹 HEADER
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Black)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(Color(0xFFF3F3F3))
+                .padding(paddingValues) // ✅ FIXED HERE (REMOVES GAP + ERROR)
         ) {
 
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "",
-                tint = Color(0xFFB86B4B),
-                modifier = Modifier.clickable { onBack() }
-            )
+            // 🔹 HEADER
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
-            Spacer(Modifier.width(12.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "",
+                    tint = Color(0xFFD08C60),
+                    modifier = Modifier.clickable { onBack() }
+                )
 
-            Text(
-                "Saved Ads",
-                color = Color(0xFFB86B4B),
-                fontSize = 18.sp
-            )
-        }
+                Spacer(Modifier.width(12.dp))
 
-        // 🔹 LIST
-        LazyColumn {
+                Text(
+                    "Saved Ads",
+                    color = Color(0xFFD08C60),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
 
-            items(savedAds) { ad ->
+            // 🔹 LIST
+            LazyColumn {
 
-                Card(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(Color.White),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
+                items(savedAds) { ad ->
 
-                    Row {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .clickable { onAdClick(ad) },
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(Color.White),
+                        elevation = CardDefaults.cardElevation(6.dp)
+                    ) {
 
-                        AsyncImage(
-                            model = ad.imageUrl,
-                            contentDescription = "",
-                            modifier = Modifier.size(100.dp),
-                            contentScale = ContentScale.Crop
-                        )
+                        Column {
 
-                        Column(
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .weight(1f)
-                        ) {
-
-                            Text(ad.title, fontSize = 14.sp)
-
-                            Spacer(Modifier.height(4.dp))
-
-                            Text(ad.location, color = Color.Gray, fontSize = 12.sp)
-
-                            Spacer(Modifier.height(6.dp))
-
-                            Text(
-                                ad.price,
-                                color = Color(0xFFB86B4B),
-                                fontSize = 14.sp
+                            AsyncImage(
+                                model = ad.imageUri,
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(140.dp),
+                                contentScale = ContentScale.Crop
                             )
+
+                            Column(modifier = Modifier.padding(12.dp)) {
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+
+                                    Text(
+                                        ad.title,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black // ✅ FIXED (WAS GREY ISSUE)
+                                    )
+
+                                    Icon(
+                                        Icons.Default.Favorite,
+                                        contentDescription = "",
+                                        tint = Color.Red,
+                                        modifier = Modifier.clickable {
+                                            adViewModel.toggleSave(ad)
+                                        }
+                                    )
+                                }
+
+                                Spacer(Modifier.height(4.dp))
+
+                                Text(ad.location, color = Color.Gray)
+
+                                Spacer(Modifier.height(4.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+
+                                    Text(
+                                        ad.price,
+                                        color = Color(0xFFD08C60)
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .border(
+                                                1.dp,
+                                                Color.LightGray,
+                                                RoundedCornerShape(20.dp)
+                                            )
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            ad.category,
+                                            color = Color.Black // ✅ FIXED JOBS GREY ISSUE
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

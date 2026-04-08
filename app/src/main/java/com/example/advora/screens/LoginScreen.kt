@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -25,8 +24,9 @@ import com.example.advora.viewmodel.LanguageViewModel
 
 @Composable
 fun LoginScreen(
-    onLogin: () -> Unit,
+    onLogin: (Boolean) -> Unit, // Boolean true = Admin, false = User
     onRegister: () -> Unit,
+    onForgotPassword: () -> Unit,
     languageViewModel: LanguageViewModel
 ) {
     val context = LocalContext.current
@@ -48,7 +48,7 @@ fun LoginScreen(
     ) {
 
         /////////////////////////////////////////////////////////////
-        // 🌐 LANGUAGE TOGGLE (FINAL DESIGN)
+        // 🌐 LANGUAGE TOGGLE
         /////////////////////////////////////////////////////////////
         Row(
             modifier = Modifier
@@ -67,16 +67,13 @@ fun LoginScreen(
                     .padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Icon(
                     Icons.Default.Translate,
                     contentDescription = null,
                     tint = primaryColor,
                     modifier = Modifier.size(16.dp)
                 )
-
                 Spacer(modifier = Modifier.width(6.dp))
-
                 Text(
                     text = if (isHindi) "EN" else "हिं",
                     color = primaryColor,
@@ -106,11 +103,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row {
                     Text(
                         text = "Ad",
@@ -125,9 +118,7 @@ fun LoginScreen(
                         color = Color.Black
                     )
                 }
-
                 Spacer(modifier = Modifier.height(6.dp))
-
                 Text(
                     text = if (isHindi) "Advora में आपका स्वागत है"
                     else "Welcome back to Advora",
@@ -135,7 +126,6 @@ fun LoginScreen(
                     color = Color.Gray
                 )
             }
-
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -149,9 +139,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(22.dp),
                 colors = CardDefaults.cardColors(containerColor = cardColor)
             ) {
-
                 Column(modifier = Modifier.padding(20.dp)) {
-
                     Text(
                         text = if (isHindi) "लॉगिन करें" else "Login",
                         fontSize = 20.sp,
@@ -169,7 +157,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // 🔥 EMAIL FIELD FIXED
                     TextField(
                         value = email,
                         onValueChange = { email = it },
@@ -206,7 +193,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // 🔥 PASSWORD FIELD FULLY FIXED
                     TextField(
                         value = password,
                         onValueChange = { password = it },
@@ -248,18 +234,23 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = if (isHindi) "पासवर्ड भूल गए?" else "Forgot Password?",
-                        color = primaryColor,
-                        fontSize = 12.sp,
-                        modifier = Modifier.align(Alignment.End)
+                        text = "Forgot Password?",
+                        color = Color(0xFFB56E4A),
+                        modifier = Modifier.clickable { onForgotPassword() }
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
 
+                    // 🔥 UPDATED BUTTON LOGIC FOR ADMIN
                     Button(
                         onClick = {
                             if (email.isNotEmpty() && password.isNotEmpty()) {
-                                onLogin()
+                                // Admin Logic
+                                if (email == "admin@gmail.com" && password == "1234") {
+                                    onLogin(true)
+                                } else {
+                                    onLogin(false)
+                                }
                             } else {
                                 Toast.makeText(
                                     context,

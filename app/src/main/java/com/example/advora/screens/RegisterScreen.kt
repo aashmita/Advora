@@ -49,6 +49,18 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(Color(0xFFEDEDED))
     ) {
+        IconButton(
+            onClick = { onBack() },
+            modifier = Modifier
+                .padding(start = 12.dp, top = 40.dp)
+                .align(Alignment.TopStart)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.Black
+            )
+        }
 
         // 🌐 LANGUAGE TOGGLE
         Row(
@@ -181,7 +193,10 @@ fun RegisterScreen(
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
-                        Text(if (isHindi) "रजिस्टर करें" else "Register")
+                        Text(if (isHindi) "रजिस्टर करें" else "Register",
+                            color = Color.White
+                            )
+
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
