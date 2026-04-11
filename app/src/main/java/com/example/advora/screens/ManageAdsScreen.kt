@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -40,15 +41,13 @@ fun ManageAdsScreen(
     val accentColor = Color(0xFFD08C60)
     val bgColor = Color(0xFFF5F5F7)
 
+    // Maintaining original states
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     var selectedCategory by remember { mutableStateOf("All") }
     var selectedStatusTab by remember { mutableIntStateOf(0) }
-
-    // Track local approvals to change UI state to grey
     var localApprovedIds by remember { mutableStateOf(setOf<String>()) }
-
     var adToConfirm by remember { mutableStateOf<AdItem?>(null) }
     var isApproveAction by remember { mutableStateOf(true) }
 
@@ -69,11 +68,11 @@ fun ManageAdsScreen(
     ) {
         Scaffold(
             topBar = {
-                AdminTopBar(
+                // Updated TopBar to show Back Button and Title
+                ManageAdsTopBar(
                     isHindi = isHindi,
-                    onLogout = onLogout,
-                    onMenuClick = { scope.launch { drawerState.open() } },
-                    onToggleLang = { languageViewModel.toggleLanguage() }
+                    accentColor = accentColor,
+                    onBack = { onNavigate("admin_dashboard") }
                 )
             },
             containerColor = bgColor
@@ -148,9 +147,7 @@ fun ManageAdsScreen(
                         onDismiss = { adToConfirm = null },
                         onConfirm = {
                             if (isApproveAction) {
-                                // Mark as approved locally to update UI to grey
                                 localApprovedIds = localApprovedIds + ad.id
-                                // You can call your backend update here if necessary
                             } else {
                                 adViewModel.deleteAd(ad.id)
                             }
@@ -162,6 +159,36 @@ fun ManageAdsScreen(
         }
     }
 }
+
+// --- Specific Header for Manage Ads ---
+@Composable
+fun ManageAdsTopBar(isHindi: Boolean, accentColor: Color, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = accentColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = if (isHindi) "विज्ञापनों का प्रबंधन" else "Manage Ads",
+            color = Color.White,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+// --- Rest of components (Zero changes to UI/Functionality) ---
 
 @Composable
 fun AdminAdCard(
@@ -197,7 +224,6 @@ fun AdminAdCard(
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (isApproved) {
-                        // Greyed out "Approved" block
                         Surface(
                             modifier = Modifier.height(36.dp).weight(1f),
                             color = Color(0xFFE0E0E0),
@@ -222,7 +248,7 @@ fun AdminAdCard(
                     Button(
                         onClick = onReject,
                         modifier = Modifier.height(36.dp).weight(1f),
-                        enabled = !isApproved, // Disable reject if already approved
+                        enabled = !isApproved,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(0.dp)
