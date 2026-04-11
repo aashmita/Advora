@@ -78,6 +78,7 @@ Advora bridges the gap between **offline classifieds** and the **digital world**
  - CONTRIBUTING.md → Contribution guidelines
  - .gitignore → Ignore unnecessary files
  - LICENSE → Open-source license
+   
 ## ⚙️ Setup & Installation
 
 ### Prerequisites:
@@ -93,3 +94,50 @@ Advora bridges the gap between **offline classifieds** and the **digital world**
    Add google-services.json
    Enable Authentication & Firestore
 4. Run the app on emulator or device
+
+### 🎥 Demo Video
+
+### Watch Demo Video
+ (Add your YouTube link here)
+
+### 📸 Screenshots
+
+(Add at least 3 screenshots here)
+
+Home Screen
+Ad Detail Screen
+Post Ad Screen
+
+## 👩‍💻 Team Members
+Name	                        Role
+Mahek Yadav	
+Aashmita Tiwari	
+Mishti Joshi	
+
+## ⚠️ Known Limitations
+- Depends on scraper accuracy
+- Ads may become outdated
+- No real-time advertiser verification
+- Limited to Android platform
+
+## 🔮 Future Improvements
+- AI-based recommendation system
+- Chat system between buyer & seller
+- Better spam detection
+- Multi-city expansion
+- Voice-based search
+
+## 🤖 AI Usage Disclosure
+
+AI tools were used for:
+
+- UI/UX inspiration
+- Documentation drafting
+- Idea refinement
+
+All implementation and design decisions were reviewed and customized by the team.
+
+📄 License
+
+This project is licensed under the MIT License.
+
