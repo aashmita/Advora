@@ -55,7 +55,9 @@ fun AdminProfileScreen(
             topBar = {
                 AdminTopBar(
                     isHindi = isHindi,
-                    onLogout = onLogout,
+                    //title = "Profile",          // ✅ add this
+                    //isSubPage = true,           // ✅ add this
+                    onNotificationClick = { },
                     onMenuClick = { scope.launch { drawerState.open() } },
                     onToggleLang = { languageViewModel.toggleLanguage() }
                 )
