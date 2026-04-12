@@ -103,7 +103,7 @@ Advora bridges the gap between **offline classifieds** and the **digital world**
 ### 📸 Screenshots
 
 Home Screen
-<img width="757" height="1600" alt="image" src="https://github.com/user-attachments/assets/0d85df15-ec74-48d8-b6f8-b63e1013df4d" />
+<img width="700" height="1000" alt="image" src="https://github.com/user-attachments/assets/0d85df15-ec74-48d8-b6f8-b63e1013df4d" />
 
 Ads Screen
 <img width="757" height="1600" alt="image" src="https://github.com/user-attachments/assets/37457660-49e5-49c3-b941-7d71b7a2ee70" />
