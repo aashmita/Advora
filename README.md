@@ -113,11 +113,13 @@ Post Ad Screen
 <img width="1080" height="2280" alt="image" src="https://github.com/user-attachments/assets/85cddc2f-04c5-482f-81bc-390839bb8f64" />
 
 
-## 👩‍💻 Team Members
-Name	                        Role
-Mahek Yadav	               UI/UX Design, Frontend Development
-Aashmita Tiwari	           Backend Dvelopment, Database Management
-Mishti Joshi	              Frontend Development, Database Management
+## 👩‍💻 Team & Roles
+
+| Name | Role |
+|------|------|
+| Mahek Yadav | UI/UX Design, Frontend Development |
+| Aashmita Tiwari | Backend Development, Database Management |
+| Mishti Joshi | Frontend Development, Database Management |
 
 ## ⚠️ Known Limitations
 - Depends on scraper accuracy
