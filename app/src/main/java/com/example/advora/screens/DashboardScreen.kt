@@ -47,15 +47,17 @@ fun DashboardScreen(
         AdItem(UUID.randomUUID().toString(), "2BHK Flat near Mahakal", "₹10,000", "Ujjain, MP", "Rentals", "Spacious flat near Mahakal Temple.", "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2", "Advora Official", "+91 98765 XXXX", "seller@advora.com", "Ujjain, MP", "Active", "2 hrs ago"),
         AdItem(UUID.randomUUID().toString(), "Royal Enfield Classic 350", "₹1,20,000", "Ujjain, MP", "Vehicles", "Excellent condition Classic 350.", "https://images.unsplash.com/photo-1558981806-ec527fa84c39", "Advora Official", "+91 98765 XXXX", "seller@advora.com", "Ujjain, MP", "Active", "3 hrs ago"),
         AdItem(UUID.randomUUID().toString(), "iPhone 13 (Like New)", "₹42,000", "Ujjain, MP", "Buy/Sell", "Hardly used iPhone 13.", "https://images.unsplash.com/photo-1632661674596-df8be070a5c5", "Advora Official", "+91 98765 XXXX", "seller@advora.com", "Ujjain, MP", "Active", "4 hrs ago"),
-        // MacBook Air M1 placed second to last
         AdItem(UUID.randomUUID().toString(), "MacBook Air M1", "₹65,000", "Indore, MP", "Electronics", "Pristine condition MacBook Air.", "https://images.unsplash.com/photo-1517336714460-4c504b07fe27", "Advora Official", "+91 98765 XXXX", "seller@advora.com", "Indore, MP", "Expiring", "Just now"),
         AdItem(UUID.randomUUID().toString(), "Pandit for Mahakal Puja", "₹1,500", "Ujjain, MP", "Services", "Experienced Pandit available.", "https://images.unsplash.com/photo-1604608672516-7a3f7b2f1f4d", "Advora Official", "+91 98765 XXXX", "seller@advora.com", "Ujjain, MP", "Active", "5 hrs ago")
     )
 
     // Merge viewmodel ads with static list and filter by: Active/Expiring + HAS IMAGE
     val allVisibleAds = (adViewModel.ads + restoredStaticAds).filter { ad ->
-        val hasProperImage = ad.imageUri.isNotEmpty() && ad.imageUri.startsWith("http")
-        val isCorrectStatus = ad.status == "Active" || ad.status == "Expiring"
+        // ✅ FIXED: Allow both web URLs and local content Uris
+        val hasProperImage = ad.imageUri.isNotEmpty()
+        // ✅ FIXED: Case-insensitive status check to ensure approved ads appear
+        val isCorrectStatus = ad.status.equals("Active", ignoreCase = true) ||
+                ad.status.equals("Expiring", ignoreCase = true) || ad.status.equals("Approved", ignoreCase = true)
         hasProperImage && isCorrectStatus
     }
 
@@ -148,11 +150,11 @@ fun AdCard(adItem: AdItem, isHindi: Boolean, adViewModel: AdViewModel, onAdClick
                 AsyncImage(model = adItem.imageUri, contentDescription = null, modifier = Modifier.fillMaxWidth().height(180.dp), contentScale = ContentScale.Crop)
 
                 Row(modifier = Modifier.padding(12.dp)) {
-                    if (adItem.status == "Expiring") {
+                    if (adItem.status.equals("Expiring", ignoreCase = true)) {
                         Surface(color = Color(0xFF2196F3), shape = RoundedCornerShape(8.dp)) {
                             Text(if (isHindi) "जल्द समाप्त" else "Expiring Soon", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
-                    } else if (adItem.status == "Active") {
+                    } else if (adItem.status.equals("Active", ignoreCase = true)) {
                         Surface(color = Color(0xFF4CAF50), shape = RoundedCornerShape(8.dp)) {
                             Text(if (isHindi) "सक्रिय" else "Active", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }

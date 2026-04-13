@@ -74,9 +74,11 @@ dependencies {
 
     // 🔥 FIREBASE
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
+
+    // Add dependencies for Firebase products
+    implementation("com.google.firebase:firebase-auth-ktx")     // For Login/Register
+    implementation("com.google.firebase:firebase-firestore-ktx") // For Data/Ads
+    implementation("com.google.firebase:firebase-storage-ktx")   // For Ad Images
 
     // 🔥 UI + IMAGE
     implementation("androidx.compose.material:material-icons-extended")
@@ -86,4 +88,7 @@ dependencies {
     // 🔥 VIEWMODEL
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
+    //implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
 }

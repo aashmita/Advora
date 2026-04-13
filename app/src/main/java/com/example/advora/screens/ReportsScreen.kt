@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.example.advora.viewmodel.AdItem
+import com.example.advora.viewmodel.AdViewModel
 import com.example.advora.viewmodel.LanguageViewModel
 
 data class ReportItem(
@@ -37,11 +39,13 @@ data class ReportItem(
     val location: String,
     val description: String,
     val adImageUrl: String,
-    var isResolved: Boolean = false
+    var isResolved: Boolean = false,
+    val linkedAd: AdItem? = null
 )
 
 @Composable
 fun ReportsScreen(
+    adViewModel: AdViewModel,
     languageViewModel: LanguageViewModel,
     onBack: () -> Unit
 ) {
@@ -52,13 +56,34 @@ fun ReportsScreen(
     var selectedReport by remember { mutableStateOf<ReportItem?>(null) }
     var reportToResolve by remember { mutableStateOf<ReportItem?>(null) }
 
-    val reportsList = remember { mutableStateListOf(
-        ReportItem("1", "iPhone 14 Pro Max 256GB", "John Doe", "Suspicious pricing", "2026-03-22", "₹85,000", "Indore, MP", "The price is significantly lower than market value for a 14 Pro Max in this condition. Seller refuses to meet in person.", "https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?q=80&w=1000&auto=format&fit=crop"),
-        ReportItem("2", "Honda City 2020 VX Model", "Jane Smith", "Fake images", "2026-03-21", "₹7,20,000", "Ujjain, MP", "The images provided are stock photos from a dealership website and do not represent the actual vehicle being sold.", "https://images.unsplash.com/photo-1590362891991-f776e747a588?q=80&w=1000&auto=format&fit=crop"),
-        ReportItem("3", "Samsung S23 Ultra", "Rahul Sharma", "Duplicate listing", "2026-03-20", "₹65,000", "Dewas, MP", "This exact listing has been posted multiple times by the same user across different categories to spam the feed.", "https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=1000&auto=format&fit=crop")
+    // Logic to track resolved dynamic IDs locally in the screen state
+    val resolvedDynamicIds = remember { mutableStateListOf<String>() }
+
+    val staticReports = remember { mutableStateListOf(
+        ReportItem("1", "iPhone 14 Pro Max 256GB", "John Doe", "Suspicious pricing", "2026-03-22", "85,000", "Indore, MP", "The price is significantly lower than market value for a 14 Pro Max in this condition. Seller refuses to meet in person.", "https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?q=80&w=1000&auto=format&fit=crop"),
+        ReportItem("2", "Honda City 2020 VX Model", "Jane Smith", "Fake images", "2026-03-21", "7,20,000", "Ujjain, MP", "The images provided are stock photos from a dealership website and do not represent the actual vehicle being sold.", "https://images.unsplash.com/photo-1590362891991-f776e747a588?q=80&w=1000&auto=format&fit=crop"),
+        ReportItem("3", "Samsung S23 Ultra", "Rahul Sharma", "Duplicate listing", "2026-03-20", "65,000", "Dewas, MP", "This exact listing has been posted multiple times by the same user across different categories to spam the feed.", "https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=1000&auto=format&fit=crop")
     )}
 
-    // ENHANCED CONFIRM ACTION DIALOG (Image 2 style)
+    // Mapping dynamic reports and checking if they exist in the resolved list
+    val dynamicReports = adViewModel.reportedAds.map { (ad, reason) ->
+        ReportItem(
+            id = ad.id,
+            adTitle = ad.title,
+            reportedBy = "App User",
+            reason = reason,
+            date = "Just Now",
+            price = ad.price,
+            location = ad.location,
+            description = ad.description,
+            adImageUrl = ad.imageUri,
+            linkedAd = ad,
+            isResolved = resolvedDynamicIds.contains(ad.id)
+        )
+    }.reversed() // Recent reported at the top
+
+    val allReports = dynamicReports + staticReports
+
     if (reportToResolve != null) {
         Dialog(onDismissRequest = { reportToResolve = null }) {
             Surface(
@@ -89,10 +114,27 @@ fun ReportsScreen(
                         Spacer(Modifier.width(8.dp))
                         Button(
                             onClick = {
-                                val index = reportsList.indexOf(reportToResolve)
-                                if (index != -1) reportsList[index] = reportToResolve!!.copy(isResolved = true)
+                                val report = reportToResolve!!
+
+                                if (report.linkedAd != null) {
+                                    // Handle Real Ad: Update status and move to resolved
+                                    adViewModel.updateAdDetails(report.linkedAd.copy(status = "Suspended"))
+                                    resolvedDynamicIds.add(report.id)
+
+                                    // Send Notification to User
+                                    adViewModel.addUserNotification(
+                                        title = "Ad Suspended",
+                                        message = "Admin suspended your ad '${report.adTitle}' due to reports.",
+                                        userId = report.linkedAd.userId
+                                    )
+                                } else {
+                                    // Handle Static Data
+                                    val index = staticReports.indexOfFirst { it.id == report.id }
+                                    if (index != -1) staticReports[index] = staticReports[index].copy(isResolved = true)
+                                }
+
                                 reportToResolve = null
-                                selectedReport = null // Navigate back to list if in detail view
+                                selectedReport = null
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                             shape = RoundedCornerShape(100.dp)
@@ -118,17 +160,16 @@ fun ReportsScreen(
                     }
                 }
             },
-            containerColor = Color(0xFFF5F5F7) // Match app theme background
+            containerColor = Color(0xFFF5F5F7)
         ) { padding ->
             Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                // Tabs
                 Row(modifier = Modifier.fillMaxWidth().padding(16.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFE0E0E0).copy(0.6f)).padding(4.dp)) {
                     TabButton(if (isHindi) "लंबित" else "Pending", selectedTab == "Pending", accentColor, Modifier.weight(1f)) { selectedTab = "Pending" }
                     TabButton(if (isHindi) "हल किया गया" else "Resolved", selectedTab == "Resolved", accentColor, Modifier.weight(1f)) { selectedTab = "Resolved" }
                 }
 
                 LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val filteredList = reportsList.filter { if (selectedTab == "Pending") !it.isResolved else it.isResolved }
+                    val filteredList = allReports.filter { if (selectedTab == "Pending") !it.isResolved else it.isResolved }
                     items(filteredList) { report ->
                         CompactReportCard(report, isHindi, onAction = { reportToResolve = report }, onClick = { selectedReport = report })
                     }
@@ -183,6 +224,8 @@ fun CompactReportCard(report: ReportItem, isHindi: Boolean, onAction: () -> Unit
                 ) {
                     Text(if(isHindi) "कार्रवाई" else "Action", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
+            } else {
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2E7D32))
             }
         }
     }
@@ -210,7 +253,7 @@ fun FullReportDetailView(
                         onClick = {
                             val sendIntent = android.content.Intent().apply {
                                 action = android.content.Intent.ACTION_SEND
-                                putExtra(android.content.Intent.EXTRA_TEXT, "Check out this ad: ${report.adTitle} for ${report.price}")
+                                putExtra(android.content.Intent.EXTRA_TEXT, "Reviewing reported ad: ${report.adTitle}")
                                 type = "text/plain"
                             }
                             context.startActivity(android.content.Intent.createChooser(sendIntent, null))
@@ -224,7 +267,6 @@ fun FullReportDetailView(
                     Spacer(Modifier.width(12.dp))
                     Button(
                         onClick = {
-                            // Logic for Contact Seller (Opening Dialer)
                             val intent = android.content.Intent(android.content.Intent.ACTION_DIAL)
                             context.startActivity(intent)
                         },
@@ -241,13 +283,8 @@ fun FullReportDetailView(
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF5F5F7)) // App Theme Background
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
+            modifier = Modifier.fillMaxSize().background(Color(0xFFF5F5F7)).verticalScroll(rememberScrollState()).padding(padding)
         ) {
-            // --- Image Section ---
             Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
                 AsyncImage(
                     model = report.adImageUrl,
@@ -262,31 +299,15 @@ fun FullReportDetailView(
                     FloatingActionButton(onClick = onBack, containerColor = Color.White, shape = CircleShape, modifier = Modifier.size(40.dp), elevation = FloatingActionButtonDefaults.elevation(2.dp)) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, modifier = Modifier.size(20.dp))
                     }
-                    var isFav by remember { mutableStateOf(false) }
-                    FloatingActionButton(
-                        onClick = { isFav = !isFav },
-                        containerColor = Color.White,
-                        shape = CircleShape,
-                        modifier = Modifier.size(40.dp),
-                        elevation = FloatingActionButtonDefaults.elevation(2.dp)
-                    ) {
-                        Icon(
-                            if(isFav) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            null,
-                            tint = if(isFav) Color.Red else Color.Black,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
                 }
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // --- Title & Price Section ---
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(report.price, fontSize = 22.sp, fontWeight = FontWeight.Black, color = accentColor)
                     Spacer(Modifier.weight(1f))
-                    Surface(color = Color(0xFFE8F5E9), shape = RoundedCornerShape(4.dp)) {
-                        Text("ACTIVE", color = Color(0xFF2E7D32), modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                    Surface(color = if(report.isResolved) Color.LightGray else Color(0xFFE8F5E9), shape = RoundedCornerShape(4.dp)) {
+                        Text(if(report.isResolved) "SUSPENDED" else "ACTIVE", color = if(report.isResolved) Color.DarkGray else Color(0xFF2E7D32), modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
                 Text(report.adTitle, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(top = 2.dp))
@@ -297,7 +318,6 @@ fun FullReportDetailView(
 
                 Spacer(Modifier.height(16.dp))
 
-                // --- Description Card ---
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -313,22 +333,20 @@ fun FullReportDetailView(
 
                 Spacer(Modifier.height(12.dp))
 
-                // --- Report Info Card ---
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE).copy(alpha = 0.7f)),
-                    border = BorderStroke(1.dp, Color(0xFFFFCDD2).copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(containerColor = if(report.isResolved) Color(0xFFE8F5E9).copy(0.5f) else Color(0xFFFFEBEE).copy(alpha = 0.7f)),
+                    border = BorderStroke(1.dp, if(report.isResolved) Color(0xFF2E7D32).copy(0.3f) else Color(0xFFFFCDD2).copy(alpha = 0.5f))
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Report, contentDescription = null, tint = Color.Red, modifier = Modifier.size(18.dp))
+                            Icon(if(report.isResolved) Icons.Default.CheckCircle else Icons.Default.Report, contentDescription = null, tint = if(report.isResolved) Color(0xFF2E7D32) else Color.Red, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(if(isHindi) "रिपोर्ट जानकारी" else "Report Info", fontWeight = FontWeight.Bold, color = Color.Red, fontSize = 15.sp)
+                            Text(if(report.isResolved) (if(isHindi) "समाधान हो गया" else "Resolved") else (if(isHindi) "रिपोर्ट जानकारी" else "Report Info"), fontWeight = FontWeight.Bold, color = if(report.isResolved) Color(0xFF2E7D32) else Color.Red, fontSize = 15.sp)
                         }
                         Text("${if(isHindi) "कारण" else "Reason"}: ${report.reason}", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.Black, modifier = Modifier.padding(top = 6.dp))
 
-                        // Smaller Suspend Button at the bottom of the section
                         if (!report.isResolved) {
                             Button(
                                 onClick = { onSuspend(report) },
@@ -344,9 +362,8 @@ fun FullReportDetailView(
 
                 Spacer(Modifier.height(12.dp))
 
-                // --- Reporter Profile Card (Working) ---
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { /* Action for viewing reporter profile */ },
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     border = BorderStroke(1.dp, Color.LightGray.copy(0.3f))
@@ -361,7 +378,6 @@ fun FullReportDetailView(
                             Text(report.reportedBy, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.Black)
                             Text(if(isHindi) "सत्यापित रिपोर्टर" else "Verified Reporter", color = Color(0xFF2E7D32), fontSize = 11.sp, fontWeight = FontWeight.Medium)
                         }
-                        Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null, modifier = Modifier.size(14.dp), tint = Color.LightGray)
                     }
                 }
                 Spacer(Modifier.height(100.dp))
