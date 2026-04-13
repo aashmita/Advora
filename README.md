@@ -98,9 +98,8 @@ Advora bridges the gap between **offline classifieds** and the **digital world**
 ### 🎥 Demo Video
 
 ### Watch Demo Video
- (Add your YouTube link here)
+https://youtu.be/WlwTGznVexw?si=xBjHrtasQP9-T9TE
 
-### 📸 Screenshots
 
 ### 📸 Screenshots
 
