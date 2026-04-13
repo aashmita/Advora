@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.advora.viewmodel.AdViewModel
 import com.example.advora.viewmodel.LanguageViewModel
 import kotlinx.coroutines.launch
 
@@ -35,17 +36,10 @@ data class ActivityItem(
     val targetRoute: String
 )
 
-// Data model for Admin-specific notifications
-data class AdminNotifyItem(
-    val titleEn: String, val titleHi: String,
-    val descEn: String, val descHi: String,
-    val timeEn: String, val timeHi: String,
-    val isUrgent: Boolean = false
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
+    adViewModel: AdViewModel,
     languageViewModel: LanguageViewModel,
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
@@ -106,7 +100,7 @@ fun AdminDashboardScreen(
                 topBar = {
                     AdminTopBar(
                         isHindi = isHindi,
-                        // Updated to target Admin specific notification route
+                        hasNewNotif = adViewModel.hasNewNotifications,
                         onNotificationClick = { onNavigate("admin_notifications") },
                         onMenuClick = { scope.launch { drawerState.open() } },
                         onToggleLang = { languageViewModel.toggleLanguage() }
@@ -131,13 +125,13 @@ fun AdminDashboardScreen(
                     Spacer(Modifier.height(16.dp))
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        AdminStatCard(if (isHindi) "कुल विज्ञापन" else "Total Ads", "1.2k", Icons.Default.Description, accentColor, Modifier.weight(1f))
+                        AdminStatCard(if (isHindi) "कुल विज्ञापन" else "Total Ads", "${adViewModel.ads.size}", Icons.Default.Description, accentColor, Modifier.weight(1f))
                         AdminStatCard(if (isHindi) "कुल यूज़र" else "Total Users", "856", Icons.Default.Group, Color(0xFF4CAF50), Modifier.weight(1f))
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        AdminStatCard(if (isHindi) "रिपोर्ट्स" else "Reports", "23", Icons.Default.Warning, Color(0xFFE53935), Modifier.weight(1f))
-                        AdminStatCard(if (isHindi) "सक्रिय" else "Active", "892", Icons.AutoMirrored.Filled.TrendingUp, Color(0xFF2196F3), Modifier.weight(1f))
+                        AdminStatCard(if (isHindi) "रिपोर्ट्स" else "Reports", "${adViewModel.reportedAds.size}", Icons.Default.Warning, Color(0xFFE53935), Modifier.weight(1f))
+                        AdminStatCard(if (isHindi) "सक्रिय" else "Active", "${adViewModel.ads.filter { it.status == "Active" }.size}", Icons.AutoMirrored.Filled.TrendingUp, Color(0xFF2196F3), Modifier.weight(1f))
                     }
 
                     Spacer(Modifier.height(32.dp))
@@ -188,58 +182,87 @@ fun AdminDashboardScreen(
     }
 }
 
-// --- NEW SCREEN: Admin Notifications ---
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminNotificationScreen(
+    adViewModel: AdViewModel,
     languageViewModel: LanguageViewModel,
     onBack: () -> Unit
 ) {
     val isHindi = languageViewModel.isHindi
     val accentColor = Color(0xFFD08C60)
 
-    val adminNotifications = remember {
-        listOf(
-            AdminNotifyItem("System Maintenance", "सिस्टम रखरखाव", "Scheduled server update at 12:00 AM.", "रात 12:00 बजे निर्धारित सर्वर अपडेट।", "1h ago", "1 घंटे पहले"),
-            AdminNotifyItem("Urgent Reports", "तत्काल रिपोर्ट", "5 ads in 'Real Estate' reported for fraud.", "धोखाधड़ी के लिए 'रियल एस्टेट' में 5 विज्ञापनों की रिपोर्ट की गई।", "3h ago", "3 घंटे पहले", true),
-            AdminNotifyItem("New KYC Request", "नया केवाईसी अनुरोध", "Verify 10 new business account applications.", "10 नए बिजनेस अकाउंट आवेदनों को सत्यापित करें।", "Yesterday", "कल")
-        )
+    // ✅ Accessing live notifications from AdViewModel
+    val adminNotifications = adViewModel.notifications
+
+    // ✅ Clear the notification badge when this screen is viewed
+    LaunchedEffect(Unit) {
+        adViewModel.setNewNotification(false)
     }
 
     Scaffold(
         topBar = {
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color.Black).statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .statusBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accentColor, modifier = Modifier.size(24.dp))
                 }
-                Text(if (isHindi) "एडमिन सूचनाएं" else "Admin Notifications", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (isHindi) "एडमिन सूचनाएं" else "Admin Notifications",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         },
         containerColor = Color(0xFFF5F5F7)
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
-            item { Spacer(Modifier.height(16.dp)) }
-            items(adminNotifications) { item ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                        Box(Modifier.padding(top = 5.dp).size(8.dp).background(if (item.isUrgent) Color.Red else accentColor, CircleShape))
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (isHindi) item.titleHi else item.titleEn, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.Black)
-                                Text(if (isHindi) item.timeHi else item.timeEn, fontSize = 11.sp, color = Color.Gray)
+        if (adminNotifications.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text(if(isHindi) "कोई सूचना नहीं" else "No notifications", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(modifier = Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
+                item { Spacer(Modifier.height(16.dp)) }
+                items(adminNotifications) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                            // Unread status indicator
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 5.dp)
+                                    .size(8.dp)
+                                    .background(if (!item.isRead) Color.Red else accentColor, CircleShape)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(item.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.Black)
+                                    Text(item.time, fontSize = 11.sp, color = Color.Gray)
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Text(item.message, fontSize = 13.sp, color = Color.DarkGray, lineHeight = 18.sp)
+
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    TextButton(
+                                        onClick = { adViewModel.notifications.remove(item) },
+                                        contentPadding = PaddingValues(0.dp)
+                                    ) {
+                                        Text(if(isHindi) "हटाएं" else "Dismiss", color = accentColor, fontSize = 12.sp)
+                                    }
+                                }
                             }
-                            Spacer(Modifier.height(4.dp))
-                            Text(if (isHindi) item.descHi else item.descEn, fontSize = 13.sp, color = Color.DarkGray, lineHeight = 18.sp)
                         }
                     }
                 }
@@ -248,59 +271,16 @@ fun AdminNotificationScreen(
     }
 }
 
-// --- Support Components (Existing UI maintained) ---
+// --- Support Components ---
 
 @Composable
-fun ActivityDetailScreen(
-    activity: ActivityItem,
+fun AdminTopBar(
     isHindi: Boolean,
-    accentColor: Color,
-    onBack: () -> Unit,
-    onAction: (String) -> Unit
+    hasNewNotif: Boolean,
+    onNotificationClick: () -> Unit,
+    onMenuClick: () -> Unit,
+    onToggleLang: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF8F9FA))) {
-        Row(
-            modifier = Modifier.fillMaxWidth().background(Color.Black).statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accentColor, modifier = Modifier.size(24.dp))
-            }
-            Text(if (isHindi) "गतिविधि विवरण" else "Activity Details", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Column(modifier = Modifier.padding(16.dp)) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(3.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(translateTime(activity.timestamp, isHindi), color = accentColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    Text(activity.targetName, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black, modifier = Modifier.padding(vertical = 4.dp))
-                    HorizontalDivider(Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
-                    Text(text = if (isHindi) activity.detailHi else activity.detailEn, fontSize = 14.sp, lineHeight = 22.sp, color = Color.DarkGray)
-                    Spacer(Modifier.height(24.dp))
-                    val btnText = when(activity.type) {
-                        ActivityType.NEW_AD -> if (isHindi) "विज्ञापन समीक्षा करें" else "Review Ad"
-                        ActivityType.USER_REPORTED -> if (isHindi) "रिपोर्ट देखें" else "View Report"
-                        ActivityType.NEW_USER -> if (isHindi) "यूज़र प्रबंधित करें" else "Manage User"
-                    }
-                    Button(onClick = { onAction(activity.targetRoute) }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentColor)) {
-                        Text(btnText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    }
-                    TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                        Text(if (isHindi) "पीछे हटें" else "Go Back", color = Color.Gray, fontSize = 13.sp)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AdminTopBar(isHindi: Boolean, onNotificationClick: () -> Unit, onMenuClick: () -> Unit, onToggleLang: () -> Unit) {
     val accentColor = Color(0xFFD08C60)
     Row(
         modifier = Modifier.fillMaxWidth().background(Color.Black).statusBarsPadding().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -324,7 +304,13 @@ fun AdminTopBar(isHindi: Boolean, onNotificationClick: () -> Unit, onMenuClick: 
             }
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = onNotificationClick) {
-                Icon(Icons.Default.Notifications, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                BadgedBox(badge = {
+                    if (hasNewNotif) {
+                        Badge(containerColor = Color.Red)
+                    }
+                }) {
+                    Icon(Icons.Default.Notifications, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                }
             }
         }
     }
@@ -403,6 +389,55 @@ fun DrawerMenuItem(label: String, icon: ImageVector, isSelected: Boolean, onClic
             Icon(icon, null, tint = Color(0xFFD08C60), modifier = Modifier.size(22.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Text(label, color = if (isSelected) Color.White else Color(0xFFD08C60).copy(0.7f), fontSize = 16.sp)
+        }
+    }
+}
+
+@Composable
+fun ActivityDetailScreen(
+    activity: ActivityItem,
+    isHindi: Boolean,
+    accentColor: Color,
+    onBack: () -> Unit,
+    onAction: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF8F9FA))) {
+        Row(
+            modifier = Modifier.fillMaxWidth().background(Color.Black).statusBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accentColor, modifier = Modifier.size(24.dp))
+            }
+            Text(if (isHindi) "गतिविधि विवरण" else "Activity Details", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(3.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(translateTime(activity.timestamp, isHindi), color = accentColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(activity.targetName, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black, modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(Modifier.padding(vertical = 12.dp), thickness = 0.5.dp)
+                    Text(text = if (isHindi) activity.detailHi else activity.detailEn, fontSize = 14.sp, lineHeight = 22.sp, color = Color.DarkGray)
+                    Spacer(Modifier.height(24.dp))
+                    val btnText = when(activity.type) {
+                        ActivityType.NEW_AD -> if (isHindi) "विज्ञापन समीक्षा करें" else "Review Ad"
+                        ActivityType.USER_REPORTED -> if (isHindi) "रिपोर्ट देखें" else "View Report"
+                        ActivityType.NEW_USER -> if (isHindi) "यूज़र प्रबंधित करें" else "Manage User"
+                    }
+                    Button(onClick = { onAction(activity.targetRoute) }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = accentColor)) {
+                        Text(btnText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                    TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                        Text(if (isHindi) "पीछे हटें" else "Go Back", color = Color.Gray, fontSize = 13.sp)
+                    }
+                }
+            }
         }
     }
 }

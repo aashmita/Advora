@@ -36,6 +36,10 @@ fun AdminAdDetailScreen(
     val brandColor = Color(0xFFD08C60)
     val context = LocalContext.current
 
+    // ✅ Find the actual seller from the registeredUsers list using the ad's owner data
+    // If it's a new user, it finds them in the list. If it's predefined, it falls back to ad info.
+    val seller = registeredUsers.find { it.email == ad.ownerEmail }
+
     // State to show seller profile popup
     var showSellerProfile by remember { mutableStateOf(false) }
 
@@ -150,7 +154,8 @@ fun AdminAdDetailScreen(
                 Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:${ad.ownerPhone}")
+                            // ✅ Uses actual seller phone if found, else defaults to ad info
+                            data = Uri.parse("tel:${seller?.phone ?: ad.ownerPhone}")
                         }
                         context.startActivity(intent)
                     },
@@ -173,7 +178,8 @@ fun AdminAdDetailScreen(
                         modifier = Modifier.size(40.dp).background(brandColor, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(ad.ownerName.take(1), color = Color.White, fontWeight = FontWeight.Bold)
+                        // ✅ Uses first letter of actual name
+                        Text((seller?.name ?: ad.ownerName).take(1), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.width(12.dp))
                     Text("Seller Profile", fontWeight = FontWeight.Bold)
@@ -181,10 +187,11 @@ fun AdminAdDetailScreen(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    AdminDetailRow(Icons.Default.Person, "Name", ad.ownerName)
-                    AdminDetailRow(Icons.Default.Phone, "Phone", ad.ownerPhone)
-                    AdminDetailRow(Icons.Default.Email, "Email", ad.ownerEmail)
-                    AdminDetailRow(Icons.Default.Home, "Address", ad.ownerAddress)
+                    // ✅ All fields now show data from the actual user profile if available
+                    AdminDetailRow(Icons.Default.Person, "Name", seller?.name ?: ad.ownerName)
+                    AdminDetailRow(Icons.Default.Phone, "Phone", seller?.phone ?: ad.ownerPhone)
+                    AdminDetailRow(Icons.Default.Email, "Email", seller?.email ?: ad.ownerEmail)
+                    AdminDetailRow(Icons.Default.Home, "Address", if (seller != null) "Verified User" else ad.ownerAddress)
                 }
             },
             shape = RoundedCornerShape(20.dp),
