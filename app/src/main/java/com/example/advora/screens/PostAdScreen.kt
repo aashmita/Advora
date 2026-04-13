@@ -22,34 +22,38 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.example.advora.viewmodel.AdItem
 import com.example.advora.viewmodel.AdViewModel
 import com.example.advora.viewmodel.LanguageViewModel
 import java.util.UUID
 
-data class CategoryItem(val name: String, val icon: ImageVector)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostAdScreen(
     adViewModel: AdViewModel,
     languageViewModel: LanguageViewModel,
-    adToEdit: AdItem? = null, // ✅ Added parameter for editing
+    adToEdit: AdItem? = null,
     onBack: () -> Unit,
     onNavigate: (String) -> Unit
 ) {
     val isHindi = languageViewModel.isHindi
+    val accentColor = Color(0xFFD08C60)
 
     // --- State Variables ---
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var area by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var error by remember { mutableStateOf("") }
+
+    // --- Dialog State ---
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     // ✅ Pre-fill details if adToEdit is not null
     LaunchedEffect(adToEdit) {
@@ -57,26 +61,71 @@ fun PostAdScreen(
             title = it.title
             description = it.description
             price = it.price.replace("₹", "")
-            location = it.location
+
+            val parts = it.location.split(", ")
+            city = parts.getOrNull(0) ?: ""
+            area = parts.getOrNull(1) ?: ""
+
             selectedCategory = it.category
             if (it.imageUri.isNotEmpty()) {
-                imageUri = Uri.parse(it.imageUri)
+                imageUri = it.imageUri.toUri()
             }
         }
     }
 
+    // ✅ Updated Category list including "Other"
     val categories = listOf(
-        CategoryItem("Electronics", Icons.Default.Devices),
-        CategoryItem("Vehicles", Icons.Default.DirectionsCar),
-        CategoryItem("Real Estate", Icons.Default.HomeWork),
-        CategoryItem("Jobs", Icons.Default.Work),
-        CategoryItem("Furniture", Icons.Default.Chair),
-        CategoryItem("Fashion", Icons.Default.Checkroom)
+        CategoryItem(if (isHindi) "इलेक्ट्रॉनिक्स" else "Electronics", Icons.Default.Devices),
+        CategoryItem(if (isHindi) "वाहन" else "Vehicles", Icons.Default.DirectionsCar),
+        CategoryItem(if (isHindi) "रियल एस्टेट" else "Real Estate", Icons.Default.HomeWork),
+        CategoryItem(if (isHindi) "नौकरियां" else "Jobs", Icons.Default.Work),
+        CategoryItem(if (isHindi) "फर्नीचर" else "Furniture", Icons.Default.Chair),
+        CategoryItem(if (isHindi) "फैशन" else "Fashion", Icons.Default.Checkroom),
+        CategoryItem(if (isHindi) "अन्य" else "Other", Icons.Default.MoreHoriz) // Added "Other" option
     )
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri -> if (uri != null) imageUri = uri }
+
+    // --- Approval Notification Dialog ---
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Prevent dismiss by clicking outside */ },
+            title = {
+                Text(
+                    text = if (isHindi) "सफलतापूर्वक भेजा गया" else "Ad Submitted",
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor
+                )
+            },
+            text = {
+                Text(
+                    text = if (isHindi)
+                        "आपका विज्ञापन एडमिन अनुमोदन के लिए भेज दिया गया है और जल्द ही पोस्ट किया जाएगा।"
+                    else "Your ad has been sent for admin approval and will be posted soon."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSuccessDialog = false
+                        onNavigate("ads") // Navigate to My Ads
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                ) {
+                    Text("OK", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onBack() }) {
+                    Text(text = if (isHindi) "पीछे" else "Back", color = Color.Gray)
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = Color.White
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -85,13 +134,13 @@ fun PostAdScreen(
                     Text(
                         text = if (adToEdit != null) (if (isHindi) "संपादित करें" else "Edit Ad")
                         else (if (isHindi) "विज्ञापन डालें" else "Post New Ad"),
-                        color = Color(0xFFD08C60),
+                        color = accentColor,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "", tint = Color(0xFFD08C60))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "", tint = accentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -119,7 +168,7 @@ fun PostAdScreen(
             ) {
                 if (imageUri == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.AddPhotoAlternate, null, tint = Color(0xFFD08C60), modifier = Modifier.size(40.dp))
+                        Icon(Icons.Default.AddPhotoAlternate, null, tint = accentColor, modifier = Modifier.size(40.dp))
                         Text(if (isHindi) "फोटो जोड़ें" else "Add Photos", fontWeight = FontWeight.Bold, color = Color.DarkGray)
                     }
                 } else {
@@ -139,10 +188,9 @@ fun PostAdScreen(
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFFD08C60)
+                        cursorColor = accentColor
                     )
                 )
             }
@@ -155,7 +203,7 @@ fun PostAdScreen(
                         readOnly = true,
                         placeholder = { Text(if (isHindi) "श्रेणी चुनें" else "Select category") },
                         trailingIcon = {
-                            Icon(if(expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, "", tint = Color(0xFFD08C60))
+                            Icon(if(expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, "", tint = accentColor)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = false,
@@ -169,13 +217,12 @@ fun PostAdScreen(
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        offset = androidx.compose.ui.unit.DpOffset(x = (0).dp, y = (4).dp),
                         modifier = Modifier.fillMaxWidth(0.9f).background(Color.White)
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
                                 text = { Text(category.name) },
-                                leadingIcon = { Icon(category.icon, null, tint = Color(0xFFD08C60), modifier = Modifier.size(20.dp)) },
+                                leadingIcon = { Icon(category.icon, null, tint = accentColor, modifier = Modifier.size(20.dp)) },
                                 onClick = { selectedCategory = category.name; expanded = false }
                             )
                         }
@@ -191,7 +238,7 @@ fun PostAdScreen(
                             value = price,
                             onValueChange = { price = it },
                             placeholder = { Text("0.00") },
-                            leadingIcon = { Text("₹", fontWeight = FontWeight.Bold, color = Color(0xFFD08C60)) },
+                            leadingIcon = { Text("₹", fontWeight = FontWeight.Bold, color = accentColor) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -204,11 +251,11 @@ fun PostAdScreen(
                 }
                 Spacer(Modifier.width(12.dp))
                 Box(modifier = Modifier.weight(1.2f)) {
-                    EnhancedInputCard(if (isHindi) "स्थान *" else "Location *") {
+                    EnhancedInputCard(if (isHindi) "शहर *" else "City *") {
                         TextField(
-                            value = location,
-                            onValueChange = { location = it },
-                            placeholder = { Text(if (isHindi) "शहर" else "City/Area") },
+                            value = city,
+                            onValueChange = { city = it },
+                            placeholder = { Text(if (isHindi) "शहर का नाम" else "Enter City") },
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -219,6 +266,21 @@ fun PostAdScreen(
                         )
                     }
                 }
+            }
+
+            EnhancedInputCard(if (isHindi) "क्षेत्र (वैकल्पिक)" else "Area") {
+                TextField(
+                    value = area,
+                    onValueChange = { area = it },
+                    placeholder = { Text(if (isHindi) "इलाका या क्षेत्र लिखें" else "Locality or Area") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
             }
 
             EnhancedInputCard(if (isHindi) "विवरण" else "Description") {
@@ -240,36 +302,38 @@ fun PostAdScreen(
                 Text(error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
             }
 
-            // --- SUBMIT BUTTON (Update or Post) ---
+            // --- SUBMIT BUTTON ---
             Button(
                 onClick = {
-                    if (title.isBlank() || selectedCategory.isBlank() || location.isBlank()) {
-                        error = if (isHindi) "आवश्यक फ़ील्ड भरें" else "Please fill required fields"
+                    if (title.isBlank() || selectedCategory.isBlank() || city.isBlank()) {
+                        error = if (isHindi) "शीर्षक, श्रेणी और शहर आवश्यक हैं" else "Title, Category and City are required"
                         return@Button
                     }
 
+                    val fullLocation = if (area.isNotBlank()) "$city, $area" else city
+
                     val finalAd = AdItem(
-                        id = adToEdit?.id ?: UUID.randomUUID().toString(), // Keep ID if editing
+                        id = adToEdit?.id ?: UUID.randomUUID().toString(),
                         title = title,
-                        price = if (price.startsWith("₹")) price else "₹$price",
+                        price = if (price.isEmpty()) "Negotiable" else if (price.startsWith("₹")) price else "₹$price",
                         category = selectedCategory,
-                        location = location,
+                        location = fullLocation,
                         description = description,
                         imageUri = imageUri?.toString() ?: "",
-                        status = adToEdit?.status ?: "Active",
+                        status = "Pending", // Set to Pending for admin approval
                         postedDate = adToEdit?.postedDate ?: "Just now"
                     )
 
                     if (adToEdit != null) {
-                        adViewModel.updateAdDetails(finalAd) // ✅ Save changes
+                        adViewModel.updateAdDetails(finalAd)
                     } else {
-                        adViewModel.addAd(finalAd) // ✅ Post new
+                        adViewModel.addAd(finalAd)
                     }
 
-                    onNavigate("ads") // Navigate to My Ads to see the change
+                    showSuccessDialog = true // Trigger notification popup
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD08C60)),
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
@@ -299,3 +363,5 @@ fun EnhancedInputCard(title: String, content: @Composable () -> Unit) {
         }
     }
 }
+
+data class CategoryItem(val name: String, val icon: ImageVector)
