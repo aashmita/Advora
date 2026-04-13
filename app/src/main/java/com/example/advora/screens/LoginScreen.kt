@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.example.advora.R
 
 @Composable
-fun LoginScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
+fun LoginScreen(onLogin: (String, String) -> Unit, onRegister: () -> Unit) {
 
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
@@ -146,7 +146,7 @@ fun LoginScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
                     .background(gradient, RoundedCornerShape(12.dp))
                     .clickable {
                         if (email.isNotEmpty() && password.isNotEmpty()) {
-                            onLogin()
+                            onLogin(email, password)
                         } else {
                             Toast.makeText(context, "Enter details", Toast.LENGTH_SHORT).show()
                         }
@@ -191,7 +191,7 @@ fun LoginScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
 @Composable
 fun LoginPreview() {
     LoginScreen(
-        onLogin = {},
+        onLogin = { _, _ -> },
         onRegister = {}
     )
 }
