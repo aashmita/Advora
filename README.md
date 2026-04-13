@@ -98,21 +98,26 @@ Advora bridges the gap between **offline classifieds** and the **digital world**
 ### 🎥 Demo Video
 
 ### Watch Demo Video
- (Add your YouTube link here)
+https://youtu.be/WlwTGznVexw?si=xBjHrtasQP9-T9TE
+
 
 ### 📸 Screenshots
 
-(Add at least 3 screenshots here)
+Home Screen  
+<img width="300" alt="Home Screen" src="https://github.com/user-attachments/assets/0d85df15-ec74-48d8-b6f8-b63e1013df4d" />
 
-Home Screen
-Ad Detail Screen
-Post Ad Screen
+Ads Screen  
+<img width="300" alt="Ads Screen" src="https://github.com/user-attachments/assets/37457660-49e5-49c3-b941-7d71b7a2ee70" />
 
-## 👩‍💻 Team Members
-Name	                        Role
-Mahek Yadav	
-Aashmita Tiwari	
-Mishti Joshi	
+Post Ad Screen  
+<img width="300" alt="Post Ad Screen" src="https://github.com/user-attachments/assets/85cddc2f-04c5-482f-81bc-390839bb8f64" />
+## 👩‍💻 Team & Roles
+
+| Name | Role |
+|------|------|
+| Mahek Yadav | UI/UX Design, Frontend Development |
+| Aashmita Tiwari | Backend Development, Database Management |
+| Mishti Joshi | Frontend Development, Database Management |
 
 ## ⚠️ Known Limitations
 - Depends on scraper accuracy
