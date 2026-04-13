@@ -44,11 +44,15 @@ fun ProfileScreen(
     val isDarkMode = adViewModel.isDarkMode
     val isHindi = languageViewModel.isHindi
 
-    // User State
-    var userName by remember { mutableStateOf("Rajesh Kumar") }
-    var userEmail by remember { mutableStateOf("rajesh@example.com") }
-    var userPhone by remember { mutableStateOf("+91 98765 43210") }
-    var userAddress by remember { mutableStateOf("Ujjain, Madhya Pradesh") } // Added Address State
+    // 🔥 FETCHING USER DETAILS FROM THE LIST
+    // We take the last registered user as the "active" profile
+    val activeUser = registeredUsers.lastOrNull()
+
+    // User State - Initialized with registered data if available
+    var userName by remember { mutableStateOf(activeUser?.name ?: "Guest User") }
+    var userEmail by remember { mutableStateOf(activeUser?.email ?: "guest@example.com") }
+    var userPhone by remember { mutableStateOf("+91 98765 432xx") }
+    var userAddress by remember { mutableStateOf("Ujjain, Madhya Pradesh") }
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -103,7 +107,7 @@ fun ProfileScreen(
                     isDark = isDarkMode, isHindi = isHindi, textColor = textColor,
                     name = userName, email = userEmail, phone = userPhone, address = userAddress, img = profileImageUri,
                     onImagePick = { launcher.launch("image/*") },
-                    onOpenMap = { onNavigate("map") }, // Navigates to your separate map screen
+                    onOpenMap = { onNavigate("map") },
                     onSave = { n, e, p, a ->
                         userName = n; userEmail = e; userPhone = p; userAddress = a
                         currentState = ProfileState.MAIN
@@ -147,7 +151,6 @@ fun MainView(
                 Text(name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = textColor)
                 Text(email, color = Color.Gray)
 
-                // Address display in main card
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                     Icon(Icons.Default.LocationOn, null, tint = Color(0xFFD08C60), modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))
@@ -231,15 +234,9 @@ fun EditView(
                 Spacer(Modifier.height(12.dp))
                 EditField(p, { p = it }, if (isHindi) "फ़ोन नंबर" else "Phone Number", Icons.Default.Phone, isDark, textColor)
                 Spacer(Modifier.height(12.dp))
-
-                // Address/Location Field
                 EditField(a, { a = it }, if (isHindi) "स्थान" else "Location/Address", Icons.Default.LocationOn, isDark, textColor)
 
-                // Map Navigation Button
-                TextButton(
-                    onClick = onOpenMap,
-                    modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
-                ) {
+                TextButton(onClick = onOpenMap, modifier = Modifier.align(Alignment.End).padding(top = 4.dp)) {
                     Icon(Icons.Default.Map, null, tint = Color(0xFFD08C60), modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(if (isHindi) "मानचित्र पर चुनें" else "Pick on Map", color = Color(0xFFD08C60))
@@ -258,9 +255,6 @@ fun EditView(
         }
     }
 }
-
-// ... Rest of the components (PrivacyView, NotificationsView, EditField, MenuSection, MenuItem) remain exactly as in your provided code ...
-// Ensure you include the helper functions below if they were missing from your file.
 
 @Composable
 fun EditField(value: String, onValueChange: (String) -> Unit, label: String, icon: ImageVector, isDark: Boolean, textColor: Color) {

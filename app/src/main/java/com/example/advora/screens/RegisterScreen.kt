@@ -1,25 +1,30 @@
-
 package com.example.advora.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.advora.viewmodel.LanguageViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun RegisterScreen(
@@ -27,62 +32,46 @@ fun RegisterScreen(
     onBack: () -> Unit,
     languageViewModel: LanguageViewModel
 ) {
-
     val isHindi = languageViewModel.isHindi
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmVisible by remember { mutableStateOf(false) }
-
     var error by remember { mutableStateOf("") }
 
-    val primaryColor = Color(0xFFB86B4B)
-    val cardColor = Color(0xFF2C2C2C)
-    val fieldColor = Color(0xFF4A4A4A)
+    val primaryOrange = Color(0xFFD08C60)
+    val appBackground = Color(0xFFFDFDFD)
+    val darkCardBackground = Color(0xFF2D2D2D)
+    val inputFieldBg = Color(0xFF454545)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFEDEDED))
-    ) {
-        IconButton(
-            onClick = { onBack() },
-            modifier = Modifier
-                .padding(start = 12.dp, top = 40.dp)
-                .align(Alignment.TopStart)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.Black
-            )
-        }
-
-        // 🌐 LANGUAGE TOGGLE
+    Box(modifier = Modifier.fillMaxSize().background(appBackground)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.End
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .shadow(8.dp, RoundedCornerShape(50))
-                    .background(cardColor, RoundedCornerShape(50))
-                    .clickable { languageViewModel.toggleLanguage() }
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.Black, modifier = Modifier.size(28.dp))
+            }
+
+            Surface(
+                onClick = { languageViewModel.toggleLanguage() },
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xFF333333),
+                modifier = Modifier.height(38.dp).width(70.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Translate, null, tint = primaryColor)
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = if (isHindi) "EN" else "हिं",
-                        color = primaryColor
-                    )
+                Box(contentAlignment = Alignment.Center) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Translate, null, tint = primaryOrange, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(if (isHindi) "EN" else "हि", color = primaryOrange, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
                 }
             }
         }
@@ -91,124 +80,87 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(110.dp))
 
-            Spacer(modifier = Modifier.height(75.dp))
-
-            Row {
-                Text("Ad", color = primaryColor, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                Text("vora", color = Color.Black, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("Ad", color = primaryOrange, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
+                Text("vora", color = Color.Black, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
             }
-
             Text(
                 text = if (isHindi) "अपना खाता बनाएं" else "Create your account",
-                color = Color.Gray
+                color = Color.Gray,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // 🔥 IMPROVED CARD SIZE
             Card(
-                modifier = Modifier.fillMaxWidth(0.88f), // 👈 slightly bigger
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = cardColor),
-                elevation = CardDefaults.cardElevation(10.dp)
+                modifier = Modifier.fillMaxWidth(0.9f),
+                shape = RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = darkCardBackground),
+                elevation = CardDefaults.cardElevation(12.dp)
             ) {
-
                 Column(
-                    modifier = Modifier.padding(20.dp), // 👈 more spacing
+                    modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
-                        text = if (isHindi) "रजिस्टर करें" else "Register",
+                        text = if (isHindi) "रजिस्टर" else "Register",
                         color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 20.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    InputField(if (isHindi) "पूरा नाम" else "Full Name", Icons.Default.Person, name, inputFieldBg) { name = it }
+                    InputField(if (isHindi) "ईमेल" else "Email", Icons.Default.Email, email, inputFieldBg) { email = it }
 
-                    InputField(
-                        placeholder = if (isHindi) "पूरा नाम" else "Full Name",
-                        icon = Icons.Default.Person,
-                        value = name,
-                        fieldColor = fieldColor,
-                        onChange = { name = it }
-                    )
-
-                    InputField(
-                        placeholder = if (isHindi) "ईमेल" else "Email",
-                        icon = Icons.Default.Email,
-                        value = email,
-                        fieldColor = fieldColor,
-                        onChange = { email = it }
-                    )
-
-                    PasswordField(
-                        placeholder = if (isHindi) "पासवर्ड" else "Password",
-                        value = password,
-                        visible = passwordVisible,
-                        icon = Icons.Default.Lock,
-                        fieldColor = fieldColor,
-                        onChange = { password = it },
-                        toggle = { passwordVisible = !passwordVisible }
-                    )
-
-                    PasswordField(
-                        placeholder = if (isHindi) "पासवर्ड पुष्टि करें" else "Confirm Password",
-                        value = confirmPassword,
-                        visible = confirmVisible,
-                        icon = Icons.Default.Lock,
-                        fieldColor = fieldColor,
-                        onChange = { confirmPassword = it },
-                        toggle = { confirmVisible = !confirmVisible }
-                    )
+                    PasswordField(if (isHindi) "पासवर्ड" else "Password", password, passwordVisible, Icons.Default.Lock, inputFieldBg, { password = it }) { passwordVisible = !passwordVisible }
+                    PasswordField(if (isHindi) "पासवर्ड की पुष्टि करें" else "Confirm Password", confirmPassword, confirmVisible, Icons.Default.Lock, inputFieldBg, { confirmPassword = it }) { confirmVisible = !confirmVisible }
 
                     if (error.isNotEmpty()) {
-                        Text(error, color = Color.Red, fontSize = 12.sp)
+                        Text(error, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
                         onClick = {
-                            when {
-                                name.isBlank() ->
-                                    error = if (isHindi) "नाम दर्ज करें" else "Enter name"
-                                !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
-                                    error = if (isHindi) "गलत ईमेल" else "Invalid email"
-                                password.length < 6 ->
-                                    error = if (isHindi) "पासवर्ड छोटा है" else "Password too short"
-                                password != confirmPassword ->
-                                    error = if (isHindi) "पासवर्ड मेल नहीं खाते" else "Passwords mismatch"
-                                else -> {
-                                    error = ""
-                                    onSuccess()
-                                }
+                            val trimmedEmail = email.trim()
+                            // CHECK IF MAIL ALREADY EXISTS
+                            val emailExists = registeredUsers.any { it.email.equals(trimmedEmail, ignoreCase = true) }
+
+                            if (name.isBlank() || trimmedEmail.isBlank() || password.isBlank()) {
+                                error = if (isHindi) "सभी फ़ील्ड भरें" else "Please fill all fields"
+                            } else if (emailExists) {
+                                error = if (isHindi) "यह ईमेल पहले से मौजूद है" else "Email already registered"
+                            } else if (password != confirmPassword) {
+                                error = if (isHindi) "पासवर्ड मेल नहीं खाते" else "Passwords do not match"
+                            } else {
+                                registeredUsers.add(UserItem(
+                                    id = (registeredUsers.size + 1).toString(),
+                                    name = name,
+                                    email = trimmedEmail,
+                                    password = password,
+                                    phone = "",
+                                    totalAds = 0,
+                                    joinDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())
+                                ))
+                                onSuccess()
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                        modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryOrange),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(if (isHindi) "रजिस्टर करें" else "Register",
-                            color = Color.White
-                            )
-
+                        Text(if (isHindi) "रजिस्टर" else "Register", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row {
+                    Row(modifier = Modifier.padding(top = 20.dp)) {
+                        Text(if (isHindi) "पहले से खाता है? " else "Already have an account? ", color = Color.Gray)
                         Text(
-                            text = if (isHindi) "पहले से खाता है?" else "Already have an account?",
-                            color = Color.Gray
-                        )
-                        Text(
-                            text = if (isHindi) " लॉगिन करें" else " Login",
-                            color = primaryColor,
+                            text = if (isHindi) "लॉगिन करें" else "Login",
+                            color = primaryOrange,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable { onBack() }
                         )
                     }
@@ -217,69 +169,41 @@ fun RegisterScreen(
         }
     }
 }
+
 @Composable
-fun InputField(
-    placeholder: String,
-    icon: ImageVector,
-    value: String,
-    fieldColor: Color, // ✅ ADD THIS
-    onChange: (String) -> Unit
-) {
-    OutlinedTextField(
+fun InputField(label: String, icon: ImageVector, value: String, color: Color, onValueChange: (String) -> Unit) {
+    TextField(
         value = value,
-        onValueChange = onChange,
-        placeholder = { Text(placeholder, color = Color.LightGray) },
-        leadingIcon = { Icon(icon, null, tint = Color.LightGray) },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = fieldColor,
-            unfocusedContainerColor = fieldColor,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent
-        ),
+        onValueChange = onValueChange,
+        placeholder = { Text(label, color = Color(0xFFAAAAAA)) },
+        leadingIcon = { Icon(icon, null, tint = Color(0xFFAAAAAA)) },
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).height(56.dp),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 5.dp)
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = color, unfocusedContainerColor = color,
+            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+            cursorColor = Color(0xFFD08C60),
+            focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent
+        )
     )
 }
+
 @Composable
-fun PasswordField(
-    placeholder: String,
-    value: String,
-    visible: Boolean,
-    icon: ImageVector,
-    fieldColor: Color,
-    onChange: (String) -> Unit,
-    toggle: () -> Unit
-) {
-    OutlinedTextField(
+fun PasswordField(label: String, value: String, visible: Boolean, icon: ImageVector, color: Color, onValueChange: (String) -> Unit, toggle: () -> Unit) {
+    TextField(
         value = value,
-        onValueChange = onChange,
-        placeholder = { Text(placeholder, color = Color.LightGray) },
-        leadingIcon = { Icon(icon, null, tint = Color.LightGray) },
-        trailingIcon = {
-            IconButton(onClick = toggle) {
-                Icon(
-                    if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = null,
-                    tint = Color.Gray // 👈 FIXED
-                )
-            }
-        },
+        onValueChange = onValueChange,
+        placeholder = { Text(label, color = Color(0xFFAAAAAA)) },
+        leadingIcon = { Icon(icon, null, tint = Color(0xFFAAAAAA)) },
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = fieldColor,
-            unfocusedContainerColor = fieldColor,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent
-        ),
+        trailingIcon = { IconButton(onClick = toggle) { Icon(if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = Color(0xFF888888)) } },
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).height(56.dp),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = color, unfocusedContainerColor = color,
+            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+            cursorColor = Color(0xFFD08C60),
+            focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent
+        )
     )
 }
