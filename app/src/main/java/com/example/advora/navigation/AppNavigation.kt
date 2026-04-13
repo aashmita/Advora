@@ -36,12 +36,20 @@ fun AppNavigation(
         )
 
         "admin_dashboard" -> AdminDashboardScreen(
+            adViewModel = adViewModel,
             languageViewModel = languageViewModel,
             onNavigate = { screen = it },
             onLogout = {
                 isAdminSession = false
                 screen = "login"
             }
+        )
+
+        // ✅ Admin Specific Notification Route
+        "admin_notifications" -> AdminNotificationScreen(
+            adViewModel = adViewModel,
+            languageViewModel = languageViewModel,
+            onBack = { screen = "admin_dashboard" }
         )
 
         "manage_ads" -> ManageAdsScreen(
@@ -60,9 +68,7 @@ fun AppNavigation(
                 AdminAdDetailScreen(
                     adId = ad.id,
                     adViewModel = adViewModel,
-                    onBack = { screen = "manage_ads" },
-                    // Added trailing lambda/parameter safety
-
+                    onBack = { screen = "manage_ads" }
                 )
             } ?: run { screen = "manage_ads" }
         }
@@ -73,24 +79,25 @@ fun AppNavigation(
             onBack = { screen = "admin_dashboard" }
         )
 
-        // UPDATED: Now points to the actual ReportsScreen instead of Placeholder
         "reports" -> ReportsScreen(
+            adViewModel = adViewModel,
             languageViewModel = languageViewModel,
             onBack = { screen = "admin_dashboard" }
         )
 
         "admin_profile" -> AdminProfileScreen(
             languageViewModel = languageViewModel,
-            onNavigate = { screen = it },
+            onBack = { screen = "admin_dashboard" },
             onLogout = {
                 isAdminSession = false
                 screen = "login"
             }
         )
 
-        "map" -> PlaceholderScreen(title = "Map View") {
-            screen = if (isAdminSession) "admin_dashboard" else "home"
-        }
+        "map" -> MapScreen(
+            adViewModel = adViewModel,
+            onBack = { screen = if (isAdminSession) "admin_dashboard" else "home" }
+        )
 
         "home" -> DashboardScreen(
             languageViewModel = languageViewModel,
@@ -106,7 +113,7 @@ fun AppNavigation(
             if (isAdminSession) {
                 AdminProfileScreen(
                     languageViewModel = languageViewModel,
-                    onNavigate = { screen = it },
+                    onBack = { screen = "admin_dashboard" },
                     onLogout = {
                         isAdminSession = false
                         screen = "login"
@@ -189,6 +196,7 @@ fun AppNavigation(
             }
         )
 
+        // ✅ User Specific Notification Route
         "notifications" -> NotificationScreen(
             adViewModel = adViewModel,
             isHindi = languageViewModel.isHindi,
